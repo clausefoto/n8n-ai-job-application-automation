@@ -1,77 +1,60 @@
 # AI-Assisted Job Search & Application Automation
 
-**Self-hosted job discovery, tracking, and document preparation with n8n, Docker, JavaScript, OpenAI, and Google Workspace.**
+**A self-hosted n8n project that discovers and scores job listings, then helps prepare tailored applications with two-stage AI review and styled Google Docs templates.**
 
-This project connects job discovery with a human-reviewed application workflow. It gathers job listings, tracks them in Google Sheets, and—only when a job is selected—generates and reviews a tailored résumé and cover letter. The final documents are created from styled Google Docs templates, with links written back to the matching job row.
+Built with **n8n, Docker / Unraid, Apify, JavaScript, OpenAI, and Google Sheets / Drive / Docs APIs**.
 
-> **Scope:** Application **preparation**, not automatic job submission. A person reviews the jobs and documents before applying.
+> **Human in the loop:** Jobs are selected manually for application preparation. This project does not automatically submit job applications.
 
-## Why I built it
+![Overview of the two branches of the n8n workflow](docs/images/workflow-overview.svg)
 
-I wanted a way to reduce repetitive work during a job search without giving up control over which positions to pursue or what information appears in my applications. Rather than rely on a single AI prompt, I built a multi-stage process with job deduplication, a verified career profile, a second AI review, structured document generation, and a tracking dashboard.
+## What it does
 
-## Key capabilities
+This is **one n8n workflow containing two branches**, rather than two separate n8n workflows:
 
-- **Scheduled discovery:** Find recent LinkedIn job postings through an Apify actor and process the results in n8n.
-- **Centralized job dashboard:** Store and deduplicate listings in Google Sheets using a normalized job URL (`Link`) as the record identifier.
-- **Human-in-the-loop selection:** Generate application materials only for jobs manually flagged in the sheet (`Make Cover`).
-- **Two-stage AI workflow:** Draft job-specific documents, then review against a verified candidate profile to correct unsupported claims, wording, and omissions.
-- **Structured processing:** Transform reviewed JSON using n8n Code nodes and validate required content before creating files.
-- **Styled documents:** Copy the appropriate Google Docs template, then populate it using Google Docs `documents.batchUpdate` / `replaceAllText`.
-- **Optional project sections:** Use different résumé templates depending on whether relevant projects are included.
-- **Traceability:** Save résumé and cover-letter Google Docs URLs back to the original row by `Link` rather than storing long text in the sheet.
-- **Self-hosting:** Run n8n in Docker on an Unraid server.
+1. **Job discovery and scoring:** A scheduled Apify **Indeed** search gets new Systems Administrator listings; an upsert into Google Sheets uses the listing's `Link` as the matching key. A second stage reads jobs without ratings, asks an AI model to evaluate fit, and stores a numeric rating with an explanation.
+2. **Application preparation:** After a job is marked `Make Cover` in Sheets, the workflow loads a verified career profile, drafts a tailored résumé and cover letter, performs an additional AI review, validates the result, creates formatted Google Docs from templates, and stores both document links in the original job row.
 
-## Technology
+The sample configuration shows both schedule triggers **disabled**. Manual testing is possible, but scheduling must be deliberately enabled after setup and testing.
 
-| Component | Role |
-| --- | --- |
-| Unraid + Docker | Self-hosted workflow runtime |
-| n8n | Scheduling, orchestration, transformations, error handling |
-| Apify | LinkedIn job discovery |
-| JavaScript (n8n Code nodes) | Parsing, filtering, field mapping, validation, grouping |
-| OpenAI API | Draft and review structured application content |
-| Google Sheets API | Job tracking, selection, and document links |
-| Google Drive API | Copy document templates and organize files |
-| Google Docs API | Fill styled templates with job-specific content |
-| OAuth 2.0 | Authorized access to Google Workspace APIs |
+## Technical highlights
 
-## Architecture
+- Multi-service orchestration in self-hosted **n8n** running in Docker on Unraid.
+- **Apify** actor + dataset consumption, with results stored in **Google Sheets** using the `Link` field for row matching.
+- Independent **AI job scoring** and **two-step application drafting/review**.
+- **JavaScript Code nodes** for validating model-generated JSON, preserving item relationships, splitting résumé and cover-letter records, and grouping final document URLs.
+- **Google Drive** template copying and **Google Docs** `documents.batchUpdate` / `replaceAllText` for consistent formatting.
+- Conditional résumé templates for jobs with or without a relevant personal projects section.
+- OAuth-based Google API integration, structured-data processing, debugging of item links, and handling API quota limits.
+- Manual selection and final document review before an application is sent to an employer.
+
+## Workflow layout
 
 ```mermaid
-flowchart TD
-    A[Scheduled discovery] --> B[Apify: job listings]
-    B --> C[Normalize, filter, deduplicate]
-    C --> D[(Google Sheets job dashboard)]
-    D --> E{Marked for application?}
-    E -- No --> D
-    E -- Yes --> F[Load verified candidate profile]
-    F --> G[AI: résumé and cover-letter draft]
-    G --> H[AI: factual and editorial review]
-    H --> I[Validate and prepare documents]
-    I --> J{Relevant projects?}
-    J --> K[Copy correct Google Docs template]
-    K --> L[Replace placeholders via Docs API]
-    L --> M[Collect résumé and letter URLs]
-    M --> N[Update matching Sheets row by Link]
+flowchart TB
+  subgraph D[Discovery and rating]
+    A[Scheduled Indeed search] --> B[Apify actor and dataset]
+    B --> C[Append or update job in Google Sheets]
+    C --> E[Get unrated rows]
+    E --> F[AI fit rating]
+    F --> G[Write score and explanation]
+  end
+  subgraph P[Application preparation]
+    H[Selected pending rows] --> I[Load private career profile]
+    I --> J[AI résumé and cover letter]
+    J --> K[AI factual/editorial review]
+    K --> L[Validate + prepare two items]
+    L --> M[Build Google Docs replacements]
+    M --> N[Copy styled template]
+    N --> O[Insert text with Docs API]
+    O --> Q[Group document links by Link]
+    Q --> R[Update matching Sheets row]
+  end
 ```
 
-The discovery and document-preparation processes are separate n8n workflows. See [Architecture](docs/architecture.md) for the node-level design.
+See the [node-level architecture guide](docs/architecture.md) for exact exported node names and data handling.
 
-## Job dashboard fields
-
-The core tracking fields are:
-
-| Field | Purpose |
-| --- | --- |
-| `Link` | Canonical LinkedIn job URL; unique matching key |
-| `Make Cover` | Human-controlled flag to prepare application materials |
-| `Resume` | Link to the generated Google Docs résumé |
-| `Cover Letter` | Link to the generated Google Docs cover letter |
-
-Additional job metadata, relevance scores, and statuses can be tracked as needed.
-
-## Repository structure
+## Project contents
 
 ```text
 .
@@ -81,57 +64,53 @@ Additional job metadata, relevance scores, and statuses can be tracked as needed
 │   ├── setup.md
 │   ├── security.md
 │   ├── troubleshooting.md
-│   └── screenshots.md
-├── examples/
-│   └── sample-job.json
-├── scripts/
-│   └── audit_n8n_export.py
-└── workflows/
-    └── README.md
+│   ├── screenshots.md
+│   └── images/workflow-overview.png
+├── workflows/
+│   ├── indeed-job-discovery-and-application-generator.sanitized.json
+│   └── README.md
+├── scripts/audit_n8n_export.py
+├── examples/sample-job.json
+└── .gitignore
 ```
 
-> **Workflow export status:** This initial documentation package does **not** include the live n8n workflow exports. Those must be exported from n8n and reviewed for sensitive information before they are committed. See [workflows/README.md](workflows/README.md).
+The [workflow export](workflows/indeed-job-discovery-and-application-generator.sanitized.json) is a **sanitized demonstration** of the actual node graph, **not a live configuration**. It contains fictional candidate data and placeholder IDs, and deliberately excludes service credentials and execution/pinned data. You must provide your own authorized service accounts, Sheets and Docs resources, and verified candidate details.
 
-## Getting started
+## Dashboard
 
-1. Run n8n in your own environment (for example, Docker).
-2. Configure Apify, OpenAI, and Google OAuth credentials in n8n. Never store those credentials in this repository.
-3. Create a Google Sheets dashboard with `Link`, `Make Cover`, `Resume`, and `Cover Letter` columns.
-4. Set up **three Google Docs templates**: résumé with projects, résumé without projects, and cover letter.
-5. Prepare a private, verified candidate profile. Do **not** commit personal career records into a public example repository.
-6. Import your sanitized workflow exports once available and reconnect credentials and resource IDs.
-7. Test with one fictional or otherwise safe job row; verify the resulting Google Docs before enabling unattended schedules.
+| Field | Purpose |
+| --- | --- |
+| `Link` | Unique job URL, used as the row-matching key |
+| `Rating` / `Score breakdown` | Job-fit rating and justification |
+| `Make Cover` | Human selection flag |
+| `Resume` | Link to generated styled Google Doc |
+| `Cover Letter` | Link to generated styled Google Doc |
 
-Full configuration instructions: [docs/setup.md](docs/setup.md).
+Other tracked fields include job title, description, company, date, salary, work arrangement, and job type.
 
-## Design decisions and lessons learned
+## Setup
 
-- **Use stable IDs:** A canonical LinkedIn URL is more reliable than assuming item order always stays the same.
-- **Preserve item metadata:** n8n Code nodes must carry `Link`, `document_type`, and item relationships through document creation.
-- **Validate AI output:** Structured output alone does not guarantee that required experience was preserved; the workflow checks for missing roles and bullets.
-- **Separate content from layout:** The LLM writes text; Google Docs templates control formatting.
-- **Handle optional sections deliberately:** Two résumé templates prevent empty section headings or borders when no project is selected.
-- **Review generated files:** Successful API responses do not guarantee a well-formatted or factually complete document.
+Start with [docs/setup.md](docs/setup.md), then consult the [security checklist](docs/security.md). The recommended test is one fictional job with both documents verified before making the workflow accessible to live data.
 
-See [troubleshooting](docs/troubleshooting.md) for specific problems encountered during development.
+## Decisions and trade-offs
 
-## Security and privacy
+- **Prevent silent omissions:** Validate AI output rather than assume the reviewer preserved all résumé positions and bullets.
+- **Keep a stable job key:** Use the `Link` column to update the correct existing row, not the Sheet row number.
+- **Separate content from presentation:** AI produces structured text; Google Docs templates preserve visual formatting.
+- **Support optional projects:** Use two résumé templates to avoid blank sections and leftover horizontal rules.
+- **Control AI behavior:** Career information must come from verified profile data, not from unsupported job-posting claims.
+- **Avoid autonomous applications:** Final application submission is outside this automation.
 
-The live system involves private job data, OAuth integrations, and personal application materials. **This repository is intended to contain architecture and sanitized examples only.** Do not publish raw n8n exports, API keys, tokens, Google document IDs, webhook endpoints, personal contact information, or real application documents. See [Security](docs/security.md) and the local export audit tool.
+## Current limitations and next steps
 
-## Future improvements
+- The exported rating prompt currently **hard-codes benefits and full-time status**; these should instead use actual job data, with unknown values handled explicitly.
+- Selected portions of the document-handling pipeline still depend on item ordering. Robust keyed joins and idempotent retries would strengthen reliability.
+- The export contains an example résumé with fixed experience-placeholder expectations. A reusable product should make role count, names, and formatting data-driven.
+- Resume page length is not yet automatically validated; PDF export, quality checks, and document versioning are potential additions.
+- Both schedule triggers are disabled in the shared export.
 
-- Version-controlled, sanitized workflow exports and example test fixtures
-- Stronger schema validation for AI responses
-- PDF exports and document quality checks
-- More robust per-job retry and idempotency handling
-- Automatic document versioning and safe duplicate detection
-- Dashboards for workflow failures and processing outcomes
-
-## Project status
-
-Actively developed as a personal automation and systems-integration portfolio project. Implemented capabilities above describe the working local prototype; setup varies by environment.
+This is a **personal automation / systems-integration portfolio project**, not an autonomous application service or a production-ready product.
 
 ## License
 
-No license has been selected yet. Please contact the repository owner before reuse or redistribution.
+No license selected yet. See the repository owner for permissions to reuse or redistribute.

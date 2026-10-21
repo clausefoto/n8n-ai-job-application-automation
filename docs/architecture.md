@@ -1,47 +1,53 @@
-# Architecture and data flow
+# Architecture and node reference
 
-The system has two independent n8n workflows. Job discovery runs on a schedule; application preparation only runs after a job has been selected. It **does not automatically submit applications**.
+This project uses **one n8n workflow with two branches** and **19 nodes**, not two separate imported workflows. The two branches share a Google Sheets dashboard but have distinct triggers and processing paths.
 
-## Discovery
+![Workflow diagram](images/workflow-overview.svg)
+
+## Branch A — Discover and score jobs
 
 ```mermaid
 flowchart LR
-  A[Schedule trigger] --> B[Apify LinkedIn job search]
-  B --> C[Normalize URLs and filter results]
-  C --> D[Deduplicate and prioritize]
-  D --> E[(Google Sheets dashboard)]
+ A[Update Jobs at 8am,12pm,4pm,8pm] --> B[Search Indeed - Systems Administrator]
+ B --> C[Get Jobs Dataset]
+ C --> D[Send to Google Sheets]
+ D --> E[Grab pending rating Rows]
+ E --> F[Rate pending Jobs]
+ F --> G[Update Google Sheet Ratings]
 ```
 
-The LinkedIn `Link` column is the stable lookup key used for new jobs and later document updates. Tracking parameters are stripped from URLs.
+The Apify actor fetches **Indeed Systems Administrator** listings. The Sheets upsert uses `Link` as the matching column. Unrated jobs are passed to the AI scorer, then `Rating` and `Score breakdown` are updated by that link. The 8 a.m., noon, 4 p.m., and 8 p.m. cron trigger is **disabled in the shared export**; exact clock behavior depends on the n8n workflow time zone.
 
-## Application preparation
+**Known limitation:** The present scoring prompt assumes that listings have benefits and full-time status, even if data differs. Scores are illustrative until those assumptions are corrected. The stored job URL is used directly; normalization and tracking-parameter removal are not guaranteed by this export.
+
+## Branch B — Prepare applications selected in Sheets
 
 ```mermaid
 flowchart TD
-  A[Grab Pending Rows1] --> B[Load Career Profile]
-  B --> C[Create Resume and Cover Letter]
-  C --> D[Review Application Documents]
-  D --> E[Prepare Application Files]
-  E --> F[Build Template Replacements]
-  F --> G[Google Drive Copy Template]
-  G --> H[Attach Copied File ID]
-  H --> I[Google Docs batchUpdate API]
-  I --> J[Prepare Document Links]
-  J --> K[Google Sheets Update Row]
+ H[Resume Updates every 5 min] --> I[Grab pending Cover Letter Rows]
+ I --> J[Load Career Profile]
+ J --> K[Create Resume and Cover Letter]
+ K --> L[Review Application Documents]
+ L --> M[Prepare Application Files]
+ M --> N[Build Template Replacements]
+ N --> O[Google Drive — Copy Template]
+ O --> P[Attach Copied File ID]
+ P --> Q[HTTP Request: Google Docs batchUpdate]
+ Q --> R[Prepare Document Links]
+ R --> S[Update Google Sheet Links]
 ```
 
-The generation and review stages use a verified candidate profile and structured JSON. One selected job creates two prepared items: `document_type=resume` and `document_type=cover_letter`. Both retain the job `Link`. The document-builder validates relevant work experience, prepares placeholder replacement requests, and sets `hasProjects` to select a résumé template with or without the optional projects section.
+A user flags a row using `Make Cover` (human approval). A verified career profile is loaded into the private workflow, and one AI stage writes JSON containing a résumé and cover letter. Another AI stage reviews factual support and completeness.
 
-Google Drive copies a styled template and returns a new file ID. Google Docs `documents.batchUpdate` populates that copy using `replaceAllText`. After **both** updates succeed, the workflow groups document URLs by `Link` and updates the existing row's `Resume` and `Cover Letter` columns.
+The code nodes validate required positions and achievements, then prepare **two document items per selected job**. Both carry `Link` and `document_type`. A `hasProjects` flag selects one of two résumé templates to prevent empty optional sections.
 
-## Important design decisions
+The Google Drive Copy node creates a new native Google Docs file, the Docs API `documents.batchUpdate` replaces placeholder text, and a final Code node groups the résumé and cover-letter links by `Link`. `Update Google Sheet Links` writes the URLs to the matching row and records completion. The five-minute schedule trigger is **disabled in the shared export**.
 
-- **Human approval:** discovered jobs do not automatically generate or submit applications.
-- **Stable identity:** use a normalized LinkedIn URL rather than row numbers.
-- **Fact checks:** AI output is treated as untrusted and checked against verified career data.
-- **Separation of concerns:** templates handle design, the AI handles text.
-- **Optional sections:** different templates prevent empty headings or borders.
-- **Error checks:** do not mark a row complete until both document links exist.
-- **Limits:** some current n8n stages depend on item-order correspondence; keyed joins and idempotent retries are future improvements.
+## Implementation trade-offs
 
-The Mermaid diagrams describe the implementation; exact node names and wiring should be verified against a safely sanitized export before attempting to import or reproduce the workflow.
+- **Human-in-the-loop:** No direct job applications are submitted to employers.
+- **Accuracy checks:** Output is reviewed against a verified profile; the public copy substitutes a fictional profile.
+- **Document generation:** Google Docs templates handle style; the AI produces structured text.
+- **Identifier:** `Link` is used as a matching key, but not formally canonicalized in this export.
+- **Data lineage:** Some Code nodes use n8n `itemMatching()`; document result pairing also relies on item order, verified by count. Large-batch retries deserve further testing.
+- **Privacy:** The published workflow is a sanitized reference. It intentionally cannot run until the owner configures real credentials and private resource IDs.

@@ -1,11 +1,7 @@
-# Screenshots
+# Workflow overview image
 
-Safe, redacted screenshots are not yet included.
+The [workflow overview](images/workflow-overview.svg) depicts the current **single 19-node workflow with two branches**. It is redrawn from the development canvas rather than embedding personal workspace content.
 
-Suggested screenshots for the portfolio:
-1. The discovery workflow overview (zoomed out and with URLs, credentials, private node parameters, and personal data concealed).
-2. The application generator workflow overview showing the two AI stages and Google Docs API integration.
-3. A fictional Google Sheets job dashboard with generated document links.
-4. A sample fictional Google Docs résumé using the styled template.
+The sanitized diagram contains no live credentials, private URLs, candidate data, or job descriptions.
 
-Check image filenames, browser tabs, hidden columns, sidebar details, and tooltips before uploading. Do not use real job application documents or personal candidate records as public examples.
+Additional screenshots using **fictional** Google Sheets jobs and corresponding example résumé/cover-letter documents can be added later. Verify that browser tabs, tooltips, user identities, and background windows are safe before publishing.

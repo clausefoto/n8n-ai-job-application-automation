@@ -1,42 +1,65 @@
-# Setup guide
+# Setup and reproduction
 
-This is an architecture reference for a self-hosted prototype, **not a one-click installation**. Sanitized workflow exports are not yet published.
+The [sanitized combined workflow](../workflows/indeed-job-discovery-and-application-generator.sanitized.json) is a **reference export**, not a plug-and-play deployment. It represents **one n8n workflow containing two branches**. Both schedule triggers are disabled.
 
 ## Prerequisites
 
-- Docker host running n8n; an Unraid deployment was used for this project.
-- Access to Apify's job-search actor and an OpenAI API account.
-- Google Cloud project with enabled Sheets, Drive, and Docs APIs and suitable OAuth 2.0 consent/configuration.
-- Google Sheet for tracking jobs.
-- Google Docs templates: résumé with projects, résumé without projects, and cover letter.
+- Self-hosted n8n in Docker (this prototype uses Unraid).
+- Access to Apify and a compatible **Indeed job-search actor**.
+- OpenAI API credentials.
+- A Google Cloud project with Sheets, Drive and Docs APIs enabled, along with OAuth 2.0 authorization.
+- A Google Sheet for tracking job listings.
+- Three native Google Docs templates: résumé **with projects**, résumé **without projects**, and **cover letter**.
 
-## Tracking sheet
+## Import and configure
 
-Create these columns with the exact names used by the workflows:
+1. Import `workflows/indeed-job-discovery-and-application-generator.sanitized.json` into n8n.
+2. Open the Apify node and replace `YOUR_APIFY_ACTOR_ID`; select your Apify credential.
+3. Update the Google Sheets nodes with `YOUR_GOOGLE_SPREADSHEET_ID`, the correct sheet tab, and your own credentials.
+4. Set `YOUR_OUTPUT_FOLDER_ID` and the three Google Docs template identifiers in the Google Drive Copy node.
+5. Reconnect OpenAI API and Google Drive credentials to the AI and HTTP Request nodes.
+6. In `Load Career Profile`, replace the **fictional example** with a private, verified career profile. Review AI instructions and experience title matching to match *your own* data.
+7. Test both branches separately with fictional job data; enable schedules only after successful manual testing.
 
-| Column | Purpose |
+The public export intentionally contains **no actual credentials, private resource IDs, execution data or real candidate profile**.
+
+## Required Google Sheet columns
+
+The workflow references these exact field names:
+
+| Column | Used for |
 | --- | --- |
-| Link | Canonical job URL used to match rows |
-| Make Cover | Human selection flag |
-| Resume | Generated Google Docs URL |
-| Cover Letter | Generated Google Docs URL |
+| `Link` | Matching previously stored jobs and final documents |
+| `Title` | Job title for AI tailoring |
+| `Company Name` | Hiring company |
+| `Job Description` | Position requirements |
+| `Rating` | AI job-fit score |
+| `Score breakdown` | Explanation of rating |
+| `Make Cover` | Human approval signal |
+| `Resume` | New Google Doc URL |
+| `Cover Letter` | New Google Doc URL |
 
-Other fields (company, title, description, ranking, dates) can be added.
+Other fields such as `Benefits`, `Remote`, `Type`, `Salary`, `Date`, and `City` may be present.
 
-## Job discovery
+The current discovery branch matches rows by the provider's job `Link`; it does not guarantee URL canonicalization. Consider stripping tracking parameters before storing URLs.
 
-Create a scheduled workflow that runs the Apify actor, reads resulting listings, normalizes LinkedIn URLs, removes duplicates, ranks candidate jobs, then appends only new records to Sheets. Use batching to stay within Google Sheets quota limits.
+## Document templates
 
-## Application preparation
+Placeholders must match the Code node `Build Template Replacements` **exactly**. Examples:
 
-Read pending selected rows using `Grab Pending Rows1`. Load a private, verified candidate profile. Use one OpenAI stage to draft and another to review against that profile. Expect JSON with `resume` and `cover_letter` keys, including structured `experience` entries. Validate required career history before document generation.
+- Résumé: `{{HEADLINE}}`, `{{SUMMARY}}`, `{{SKILLS}}`, `{{SYSADMIN_BULLETS}}`, `{{SPECIALIST_BULLETS}}`, `{{ANALYST_BULLETS}}`.
+- Optional projects: `{{PROJECTS_HEADING}}` and `{{PROJECTS}}`.
+- Cover letter: `{{COMPANY}}`, `{{POSITION}}`, `{{SALUTATION}}`, `{{LETTER_BODY}}`, `{{CLOSING}}`, `{{SIGNATURE}}`.
 
-Create two document items per selected job and preserve `Link` and `document_type`. Build Google Docs `replaceAllText` requests for the respective placeholders. Choose the Google Drive template based on the document type and `hasProjects`. Copy it, capture the returned ID, call the Google Docs `documents.batchUpdate` endpoint, and write both resulting document URLs to the original row using `Link` as the matching column.
+The **no-projects** template should omit the projects paragraphs **and their borders**, not replace their text with empty strings.
 
-## Verify before enabling schedules
+## Validation checklist
 
-Test with **fictional** sample data on a separate sheet. Confirm no missing history, correct document formatting, no leftover placeholders, and correct job-to-document association. Keep real credentials and personal application content private. See [Security](security.md).
+- Run one sample Indeed search and confirm the dataset maps to the expected Sheet columns.
+- Check rating calculations manually. **The current prompt hard-codes Benefits: Yes and Type: Full Time.**
+- Select one *fictional* sample job and inspect the initial and reviewed AI JSON.
+- Confirm both documents are generated using the correct template, include complete required history, and have no visible placeholders.
+- Confirm both links were written to the **same** selected `Link` row, with no new duplicate.
+- Review API quota limits, errors and retries before enabling schedules.
 
-## Operational notes
-
-The actual OAuth setup and node parameters vary by environment. Never commit active client secrets, webhook URLs, candidate records, or document/template IDs. See [Troubleshooting](troubleshooting.md) for failure patterns encountered in development.
+See [Architecture](architecture.md), [Troubleshooting](troubleshooting.md) and [Security](security.md).

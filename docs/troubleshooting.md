@@ -1,41 +1,39 @@
 # Troubleshooting and lessons learned
 
-## Google Sheets API read quota exceeded
+These cases occurred during development of the **single combined n8n workflow**.
 
-Avoid per-row reads in tight loops. Read existing rows in batches, deduplicate locally where possible, and rate-limit writes. Google Sheets per-user read quotas can be triggered quickly by repeated polling.
+## Sheets read quota exceeded
+Reading a spreadsheet once per row can exceed Google Sheets per-user quota limits. Read existing rows in batches, deduplicate locally where practical, and rate-limit API calls.
 
-## OAuth redirect opens localhost on the wrong computer
+## Google OAuth callback on the wrong computer
+A self-hosted n8n machine may be reached from a different browser machine. Match the authorized redirect URI to the actual callback URL; for local debugging an SSH tunnel can allow a localhost OAuth callback. Never publish the real callback or secrets.
 
-n8n may run on another host while OAuth uses localhost. Configure Google OAuth redirect URIs to match n8n's reachable callback URL. During local debugging, SSH port forwarding can expose the callback on the browser machine. Do not share the private callback or credentials publicly.
+## Code node receives Sheet fields instead of AI JSON
+Use the input panel to verify the upstream connection. Fields such as `Link`, `Make Cover`, and `Resume` indicate a Sheets row rather than OpenAI JSON. `$input.all()` reads the direct upstream input.
 
-## Code node sees Sheet columns instead of AI response
+## Missing résumé or cover letter from OpenAI
+The OpenAI node may nest structured JSON within `output[].content[].text`. Inspect the actual output array rather than assuming index zero. Parse JSON and validate keys `resume` and `cover_letter`; never silently create an incomplete résumé.
 
-Inspect the preceding node and its actual JSON. When fields such as `Link`, `Resume`, and `Cover Letter` appear instead of the AI `output`, check the workflow connections. `$input.all()` reads the immediate upstream node.
+## `source_index` missing or `document_type` undefined
+The selected source index may not survive multi-step transformations. Keep `Link` and `document_type` on **each** prepared item, and use n8n item lineage or a verified matching key.
 
-## Missing résumé or cover letter
+## `hasProjects` before initialization
+Initialize `let hasProjects = false` once per processed document, then *assign* `hasProjects = Boolean(projects.trim())`. Don't redeclare with `const hasProjects` within the same scope.
 
-The two-stage AI process returns structured `resume` and `cover_letter` objects. Parse the model's actual output text, not a guessed array position. Validate work-history entries and achievement counts; never silently produce incomplete applications.
+## Empty project heading still leaves a border
+Google Docs can preserve formatting for an empty paragraph even when its `replaceAllText` placeholder becomes an empty string. Choose a separate résumé template that physically omits the projects section.
 
-## Invalid or undefined document_type
+## Copied Google Drive document ID missing
+Correct order: `Build Template Replacements` → `Google Drive — Copy Template` → `Attach Copied File ID` → `HTTP Request` → `Prepare Document Links`. Drive Copy returns `id`, while Google Docs batchUpdate may return `documentId`.
 
-Every item leaving the document preparation stage must carry `document_type` set to `resume` or `cover_letter`. Downstream nodes must preserve it.
+## Missing experience bullets or title mismatch
+The AI may shorten earlier work history or vary job titles. Validate required roles and minimum bullet counts before formatting; match job titles flexibly rather than silently leaving sections empty. Ensure the reviewer returns all required data without inventing facts.
 
-## Cannot access hasProjects before initialization
+## Education spills to page two
+Use compact skills, paragraph spacing, and selected achievement counts. One page is not guaranteed for every job; prefer a complete two-page résumé over omitting earlier roles.
 
-Declare `let hasProjects = false` once before the document-type conditional. Later **assign** `hasProjects = Boolean(projects.trim())` without redeclaring it.
+## Stable job identifiers and duplicates
+The `Link` column is the matching key. However, some job URLs have tracking parameters. A URL-normalization pass and keyed joins would make deduplication and batch document assignment more reliable.
 
-## Empty projects section leaves a horizontal line
-
-Google Docs keeps an empty paragraph's border even if `replaceAllText` replaces its placeholder with empty text. Use a separate no-project résumé template.
-
-## Google Drive returned no file ID
-
-Check ordering: Build Template Replacements → Drive Copy → Attach Copied File ID → Docs HTTP Request. Drive Copy usually returns `id`; Google Docs batchUpdate returns `documentId`.
-
-## Matching files back to jobs
-
-Use the original normalized `Link` to identify the Sheet row. When using arrays to associate Drive results with earlier document items, verify counts and ordering. Preserve item-link metadata where possible.
-
-## Résumé spills onto a second page
-
-Prioritize accurate experience over strict one-page limits. Keep paragraph spacing compact, manage the skills section, and verify actual Google Docs formatting. Avoid removing entire prior roles simply to save space.
+## Scoring assumptions
+The current `Rate pending Jobs` prompt uses fixed `Benefits: Yes` and `Type: Full Time`. These may not reflect actual listing data. A future change should use the corresponding Sheet fields and account for unknowns.

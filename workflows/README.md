@@ -1,15 +1,13 @@
-# n8n workflow exports
+# Combined n8n workflow export
 
-The live n8n workflow JSON exports are intentionally **not included** in this initial documentation package.
+[`indeed-job-discovery-and-application-generator.sanitized.json`](indeed-job-discovery-and-application-generator.sanitized.json) is the **sanitized 19-node workflow** from the project's combined discovery, scoring, and application-preparation canvas.
 
-Planned sanitized exports:
-- `job-discovery.sanitized.json`
-- `application-generator.sanitized.json`
+It contains **two branches within one n8n workflow**:
+1. **Indeed discovery and AI job scoring** through Apify, Google Sheets, and OpenAI.
+2. **Manually selected application preparation** through two AI calls, JavaScript Code nodes, Google Drive template copying, the Google Docs API, and Google Sheets link updates.
 
-Before committing:
-1. Export a copy from n8n; never export actual credentials or execution histories.
-2. Remove private resource IDs, credential metadata, webhook URLs, pinned data, personal profile information, and secrets in all node fields and Code-node strings.
-3. Audit with `python scripts/audit_n8n_export.py workflows/your-export.sanitized.json`.
-4. Review the complete file manually and test an import with fictional sample data.
+This is a **demonstration/reference export**, not the original live configuration. It includes fictional candidate data and placeholder identifiers. Credentials and pinned execution data are intentionally excluded. Both schedule triggers are disabled.
 
-These are intended as reference workflows. Users must supply their own service credentials, templates, and a verified personal career profile.
+To use it, import the JSON in n8n, configure your own credentials, actor and document resource IDs, and replace the fictional profile with accurate private information. The current AI/JavaScript formatting expects particular experience roles and is **not a generic résumé product**.
+
+Refer to [Setup](../docs/setup.md), [Architecture](../docs/architecture.md), and [Security](../docs/security.md). Review job-rating assumptions before using scores for real decisions.
