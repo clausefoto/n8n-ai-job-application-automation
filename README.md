@@ -28,6 +28,13 @@ The sample configuration shows both schedule triggers **disabled**. Manual testi
 - OAuth-based Google API integration, structured-data processing, debugging of item links, and handling API quota limits.
 - Manual selection and final document review before an application is sent to an employer.
 
+## Dashboard guide
+
+The private Google Sheets dashboard supports job review, application tracking, interest decisions, and generated document links. See the [dashboard guide](docs/dashboard.md) and [illustrative screenshots](docs/screenshots.md). The screenshots use fictional data; the live dashboard and Sheet are private.
+
+
+
+
 ## Workflow layout
 
 ```mermaid
