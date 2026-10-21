@@ -94,5 +94,301 @@ document.querySelectorAll('[data-page]').forEach(el=>el.addEventListener('click'
 populateStages();$('search').addEventListener('input',renderList);$('stage-filter').addEventListener('change',renderList);$('interest-filter').addEventListener('change',renderList);$('remote-filter').addEventListener('change',renderList);$('sort-select').addEventListener('change',e=>{sortMode=e.target.value;renderList()});$('job-list').innerHTML='<div class="empty">Loading jobs from Google Sheets…</div>';
 google.script.run.withSuccessHandler(data=>{jobs=(data||[]).map(j=>({...j,stage:normalizeStage(j.stage),company:j.company||'Unknown company',rating:Number(j.rating)||0}));selectedId=jobs.length?jobs[0].id:null;renderList();renderDetail();updateStats();$('insight-rated').textContent=jobs.filter(j=>j.rating>0).length}).withFailureHandler(error=>{$('job-list').innerHTML='<div class="empty">Could not load jobs: '+escapeHtml(error&&error.message?error.message:'Unknown error')+'</div>';showToast('Could not load the Sheet')}).getJobs();
 </script>
+
+<!-- OVERVIEW ONLY: Everything below is scoped to #page-overview.
+     Keep the original Index.html, Code.gs, navigation, Job Search, Pipeline,
+     Documents and Insights code intact. -->
+<style>
+/* Hide only the OLD widgets on the Overview page. They stay in the DOM so
+   the original updateStats()/renderCharts() code works unchanged. */
+#page-overview > .stats,
+#page-overview > .grid { display: none !important; }
+#page-overview .at-dashboard { --at-ink:#152844; --at-muted:#73839b; --at-line:#e5eaf1; --at-blue:#2563eb; color:var(--at-ink); }
+#page-overview .at-dashboard *,#page-overview .at-dashboard *:before,#page-overview .at-dashboard *:after{box-sizing:border-box}
+#page-overview .at-stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:18px}
+#page-overview .at-stat{border:1px solid var(--at-line);border-radius:14px;min-height:118px;padding:21px 18px 18px;display:flex;gap:13px;align-items:flex-start;background:#fff}
+#page-overview .at-stat:nth-child(1){background:#edf5ff;border-color:#dbe9fc}
+#page-overview .at-stat:nth-child(2){background:#f3f6fa;border-color:#e3e9f1}
+#page-overview .at-stat:nth-child(3){background:#ebfbf3;border-color:#d7f2e4}
+#page-overview .at-stat:nth-child(4){background:#f5f0ff;border-color:#e9e0fa}
+#page-overview .at-stat:nth-child(5){background:#fff8e9;border-color:#f5eacd}
+#page-overview .at-stat-icon{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;flex:none;font-size:21px;background:#dbeaff;color:#2466df}
+#page-overview .at-stat:nth-child(2) .at-stat-icon{background:#e4ebf3;color:#526783}
+#page-overview .at-stat:nth-child(3) .at-stat-icon{background:#cbf2df;color:#0b9951}
+#page-overview .at-stat:nth-child(4) .at-stat-icon{background:#e8ddff;color:#7e4bd6}
+#page-overview .at-stat:nth-child(5) .at-stat-icon{background:#ffebc5;color:#a56a0b}
+#page-overview .at-stat-title{font-weight:740;font-size:12px;color:#28364c;margin:1px 0 4px}
+#page-overview .at-stat-value{font-weight:800;font-size:30px;line-height:1.1;letter-spacing:-.7px;font-variant-numeric:tabular-nums}
+#page-overview .at-stat-desc{font-size:11px;color:#718097;margin-top:5px}
+#page-overview .at-table-card{background:#fff;border:1px solid var(--at-line);border-radius:15px;overflow:hidden;box-shadow:0 10px 26px #102b4e08}
+#page-overview .at-table-top{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:21px 23px;border-bottom:1px solid var(--at-line)}
+#page-overview .at-table-top h2{font-size:20px;letter-spacing:-.4px;line-height:1.15;margin:0;font-weight:800;color:#14253e}
+#page-overview .at-table-top p{font-size:11px;color:var(--at-muted);margin:5px 0 0}
+#page-overview .at-controls{display:flex;gap:9px;align-items:center}
+#page-overview .at-controls input,#page-overview .at-controls select{background:#fff;border:1px solid #d9e0ec;outline:none;color:#273751;border-radius:8px;padding:10px 12px;font-size:12px;min-height:37px}
+#page-overview .at-controls input{width:240px}
+#page-overview .at-controls input:focus,#page-overview .at-controls select:focus{border-color:#5c9df8;box-shadow:0 0 0 3px #dcecff}
+#page-overview .at-table-scroll{overflow-x:auto;width:100%}
+#page-overview .at-table{border-collapse:collapse;table-layout:auto;min-width:830px;width:100%;font-size:12px}
+#page-overview .at-table thead{background:#f8fafc}
+#page-overview .at-table th{font-size:11px;text-align:left;color:#516078;font-weight:740;padding:12px 14px;white-space:nowrap;border-bottom:1px solid var(--at-line)}
+#page-overview .at-table td{padding:12px 14px;vertical-align:middle;border-bottom:1px solid #eef1f6;color:#3c4a61}
+#page-overview .at-table tbody tr:hover{background:#f9fbff}
+#page-overview .at-job-button{background:transparent;border:0;padding:0;color:#1459c4;font-weight:740;text-align:left;max-width:220px;overflow-wrap:anywhere}
+#page-overview .at-job-button:hover{text-decoration:underline}
+#page-overview .at-company{max-width:180px;overflow-wrap:anywhere}
+#page-overview .at-badge{display:inline-block;font-size:10px;font-weight:800;padding:5px 9px;border-radius:7px;white-space:nowrap}
+#page-overview .at-good{background:#dcf7e8;color:#067845}
+#page-overview .at-mid{background:#fff2cf;color:#a46604}
+#page-overview .at-low{background:#ffe4e7;color:#a92f42}
+#page-overview .at-none{background:#eff2f6;color:#6c778a}
+#page-overview .at-stage{background:#edf0f5;color:#526078}
+#page-overview .at-stage.ready{background:#e1f6e9;color:#067445}
+#page-overview .at-stage.applied{background:#e5efff;color:#2363be}
+#page-overview .at-stage.interviewing{background:#fff0ce;color:#95600a}
+#page-overview .at-stage.offer{background:#d3f6e6;color:#076b47}
+#page-overview .at-stage.rejected{background:#ffebed;color:#ad4054}
+#page-overview .at-doc-link{color:#1660d4;text-decoration:none;font-size:11px;font-weight:650;white-space:nowrap}
+#page-overview .at-doc-link:hover{text-decoration:underline}
+#page-overview .at-switch{position:relative;width:35px;height:21px;display:inline-block;vertical-align:middle}
+#page-overview .at-switch input{position:absolute;opacity:0;inset:0;width:100%;height:100%;cursor:pointer;margin:0;z-index:1}
+#page-overview .at-switch span{display:block;height:21px;border-radius:30px;background:#cbd3df;transition:background .15s}
+#page-overview .at-switch span:before{content:"";position:absolute;top:3px;left:3px;width:15px;height:15px;border-radius:50%;background:#fff;box-shadow:0 1px 4px #26375033;transition:transform .15s}
+#page-overview .at-switch input:checked+span{background:#2472ea}
+#page-overview .at-switch input:checked+span:before{transform:translateX(14px)}
+#page-overview .at-switch input:focus-visible+span{outline:3px solid #b1d4ff;outline-offset:2px}
+#page-overview .at-empty{text-align:center;color:#7a879b;padding:44px 16px!important}
+#page-overview .at-bottom{padding:13px 21px;display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:11px;color:var(--at-muted)}
+#page-overview .at-pagination{display:flex;align-items:center;gap:7px}
+#page-overview .at-pagination button{background:#fff;border:1px solid #dbe2ed;border-radius:7px;padding:6px 10px;font-size:11px;color:#385272;min-width:30px}
+#page-overview .at-pagination button:disabled{opacity:.36;cursor:default}
+#page-overview .at-page-current{font-weight:800;color:#1f62ca;background:#e9f1ff;border-radius:7px;padding:7px 11px}
+#page-overview .at-mobile-cards{display:none}
+@media(max-width:1320px){#page-overview .at-stats{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:790px){#page-overview .at-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:790px){
+ #page-overview .at-table-top{align-items:stretch;flex-direction:column;padding:16px}
+ #page-overview .at-controls{flex-wrap:wrap}#page-overview .at-controls input{width:100%;flex:1 1 100%}
+ #page-overview .at-stat{padding:15px;min-height:105px}
+ #page-overview .at-stat-value{font-size:27px}
+ #page-overview .at-table-scroll{display:none}
+ #page-overview .at-mobile-cards{display:grid;gap:10px;padding:12px}
+ #page-overview .at-mobile-card{border:1px solid #e2e8f2;border-radius:11px;padding:14px;background:#fff}
+ #page-overview .at-mobile-header{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+ #page-overview .at-mobile-company{font-size:11px;color:#7d899c;margin:4px 0 10px}
+ #page-overview .at-mobile-footer{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid #edf0f6;margin-top:12px;padding-top:12px}
+ #page-overview .at-mobile-links{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px}
+}
+@media(max-width:430px){#page-overview .at-stats{gap:9px}#page-overview .at-stat{padding:12px;gap:7px}#page-overview .at-stat-icon{width:32px;height:32px;font-size:16px}#page-overview .at-stat-title{font-size:11px}#page-overview .at-stat-value{font-size:23px}}
+</style>
+<script>
+/* New layout is attached only to Overview; the rest of your existing dashboard
+   stays exactly as before. Uses existing jobs, safeFileUrl, renderList,
+   saveToSheet and goToPage functions. */
+(function(){
+  'use strict';
+  const overview = document.getElementById('page-overview');
+  if (!overview || document.getElementById('at-dashboard')) return;
+  const state = { search:'', stage:'', page:0, perPage:10 };
+
+  overview.insertAdjacentHTML('afterbegin', `
+    <div class="at-dashboard" id="at-dashboard">
+      <div class="at-stats">
+        <article class="at-stat"><span class="at-stat-icon" aria-hidden="true">✦</span><div><div class="at-stat-title">New Jobs</div><div class="at-stat-value" id="at-count-new">0</div></div></article>
+        <article class="at-stat"><span class="at-stat-icon" aria-hidden="true">▤</span><div><div class="at-stat-title">Jobs Tracked</div><div class="at-stat-value" id="at-count-total">0</div><div class="at-stat-desc">All collected listings</div></div></article>
+        <article class="at-stat"><span class="at-stat-icon" aria-hidden="true">★</span><div><div class="at-stat-title">Interested Jobs</div><div class="at-stat-value" id="at-count-interested">0</div><div class="at-stat-desc">Marked Interested</div></div></article>
+        <article class="at-stat"><span class="at-stat-icon" aria-hidden="true">✎</span><div><div class="at-stat-title">Selected for Cover Letter</div><div class="at-stat-value" id="at-count-selected">0</div><div class="at-stat-desc">Marked for generation</div></div></article>
+        <article class="at-stat"><span class="at-stat-icon" aria-hidden="true">▣</span><div><div class="at-stat-title">Docs Generated</div><div class="at-stat-value" id="at-count-done">0</div><div class="at-stat-desc">Both document links available</div></div></article>
+      </div>
+      <div class="at-table-card">
+        <header class="at-table-top"><div><h2>Job Search Dashboard</h2><p>Search, select, and open your tracked opportunities.</p></div>
+          <div class="at-controls"><input id="at-search" type="search" placeholder="Search jobs or companies…" aria-label="Search tracked jobs">
+            <select id="at-stage-filter" aria-label="Filter jobs by application stage"><option value="">All statuses</option></select></div>
+        </header>
+        <div class="at-table-scroll"><table class="at-table"><thead><tr><th>Job Title</th><th>Company</th><th>Match Score</th><th>Make Cover</th><th>Resume</th><th>Cover Letter</th><th>Status</th></tr></thead><tbody id="at-table-body"><tr><td colspan="7" class="at-empty">Loading jobs…</td></tr></tbody></table></div>
+        <div class="at-mobile-cards" id="at-mobile-cards"></div>
+        <footer class="at-bottom"><span id="at-count-visible">Loading…</span><div class="at-pagination"><button type="button" id="at-prev" aria-label="Previous page">‹</button><span class="at-page-current" id="at-page">1</span><button type="button" id="at-next" aria-label="Next page">›</button></div></footer>
+      </div>
+    </div>
+  `);
+
+  // Global helpers provided by the existing dashboard. No new Sheet methods.
+  const $at = id => document.getElementById(id);
+  const esc = value => String(value == null ? '' : value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const info = j => String(j.title || '') + ' ' + String(j.company || '');
+  const docsReady = j => Boolean(safeFileUrl(j.resumeLink) && safeFileUrl(j.coverLetter));
+  // Code.gs already returns j.date from the Sheet's Date column.
+  // Compare calendar dates (not a rolling 24-hour window and not provider Age).
+  // Accepted formats: Oct 21, 2026; 2026-10-21; ISO timestamps; 10/21/2026.
+  // Avoid Date.parse for YYYY-MM-DD to prevent timezone shifts.
+  const dateKey = (year, month, day) => {
+    year = Number(year); month = Number(month); day = Number(day);
+    if (!Number.isInteger(year) || year < 1900 || year > 2100 ||
+        !Number.isInteger(month) || month < 1 || month > 12 ||
+        !Number.isInteger(day) || day < 1 || day > 31) return '';
+    const checked = new Date(year, month - 1, day);
+    if (checked.getFullYear() !== year || checked.getMonth() !== month - 1 ||
+        checked.getDate() !== day) return '';
+    return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  };
+  // Google Sheets' Date column can reach Apps Script as a full date,
+  // a text value with a time suffix, or a SHORT date without a year.
+  // Use calendar parts, not Date.parse('YYYY-MM-DD'), to avoid timezone shifts.
+  const postedDateKey = value => {
+    if (value instanceof Date && !Number.isNaN(value.getTime())) {
+      return dateKey(value.getFullYear(), value.getMonth() + 1, value.getDate());
+    }
+    const date = String(value ?? '').trim();
+    if (!date) return '';
+    const today = new Date();
+    const yearForYearless = (month, day) => {
+      // Pick the closest valid calendar occurrence so Dec 31 works on Jan 1.
+      const years = [today.getFullYear() - 1, today.getFullYear(), today.getFullYear() + 1];
+      const candidates = years
+        .map(y => ({ key: dateKey(y, month, day), date: new Date(y, month - 1, day) }))
+        .filter(x => x.key)
+        .sort((a,b) => Math.abs(a.date.getTime() - today.getTime()) - Math.abs(b.date.getTime() - today.getTime()));
+      return candidates.length ? candidates[0].key : '';
+    };
+    if (/^(today|posted today)$/i.test(date)) {
+      return dateKey(today.getFullYear(), today.getMonth() + 1, today.getDate());
+    }
+    if (/^(yesterday|posted yesterday|1 day ago)$/i.test(date)) {
+      const y = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
+      return dateKey(y.getFullYear(), y.getMonth() + 1, y.getDate());
+    }
+    // ISO: 2026-10-20, 2026-10-20T08:30:00Z, 2026-10-20 08:30.
+    let match = date.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:$|[Tt\s])/);
+    if (match) return dateKey(match[1], match[2], match[3]);
+
+    // US dates: 10/20, 10/20/2026, 10-20-26, optionally with a time.
+    match = date.match(/^(\d{1,2})[\/-](\d{1,2})(?:[\/-](\d{2}|\d{4}))?(?:$|[\s,])/);
+    if (match) {
+      if (!match[3]) return yearForYearless(Number(match[1]), Number(match[2]));
+      const year = match[3].length === 2 ? 2000 + Number(match[3]) : Number(match[3]);
+      return dateKey(year, match[1], match[2]);
+    }
+
+    // Month names with or without a year:
+    // Oct 20, Oct 20, 2026, October 20 2026, Oct 20 2026 10:20 AM.
+    const months = {jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};
+    match = date.match(/^([A-Za-z]{3,9})\.?\s+(\d{1,2})(?:st|nd|rd|th)?(?:,?\s+(\d{4}))?(?:$|[\s,])/i);
+    if (match) {
+      const month = months[match[1].slice(0,3).toLowerCase()];
+      if (month) return match[3] ? dateKey(match[3], month, match[2]) : yearForYearless(month, Number(match[2]));
+    }
+    // Day-first dates: 20 Oct or 20 Oct 2026 (when provider uses that layout).
+    match = date.match(/^(\d{1,2})\s+([A-Za-z]{3,9})(?:\s+(\d{4}))?(?:$|[\s,])/i);
+    if (match) {
+      const month = months[match[2].slice(0,3).toLowerCase()];
+      if (month) return match[3] ? dateKey(match[3], month, match[1]) : yearForYearless(month, Number(match[1]));
+    }
+    // Readable Date.toString output, e.g., Tue Oct 20 2026 00:00:00 GMT...
+    match = date.match(/^[A-Za-z]{3}\s+([A-Za-z]{3})\s+(\d{1,2})\s+(\d{4})\b/);
+    if (match) {
+      const month=months[match[1].toLowerCase()];
+      if (month) return dateKey(match[3],month,match[2]);
+    }
+    return '';
+  };
+  // Count postings from both TODAY and YESTERDAY (local calendar dates).
+  // Yesterday is computed using the Date constructor so month/year boundaries work.
+  const recentPostingDateKeys = () => {
+    const now = new Date();
+    const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+    return new Set([
+      dateKey(now.getFullYear(), now.getMonth() + 1, now.getDate()),
+      dateKey(yesterday.getFullYear(), yesterday.getMonth() + 1, yesterday.getDate())
+    ]);
+  };
+
+  const stageClass = stage => ({'Ready to apply':'ready','Applied':'applied','Interviewing':'interviewing','Offer':'offer','Rejected':'rejected'}[stage] || '');
+  const scoreHtml = j => {
+    const n = Number(j.rating || 0);
+    if(!Number.isFinite(n) || n <= 0) return '<span class="at-badge at-none">Not rated</span>';
+    const c = n >= 7.5 ? 'at-good' : n >= 5 ? 'at-mid' : 'at-low';
+    return `<span class="at-badge ${c}">${esc(n.toFixed(1))}/10</span>`;
+  };
+  const docHtml = (url, label) => {
+    const link = safeFileUrl(url);
+    return link ? `<a class="at-doc-link" href="${esc(link)}" target="_blank" rel="noopener noreferrer">↗ ${label}</a>` : '<span style="color:#a9b3c2">—</span>';
+  };
+  const toggleHtml = j => `<label class="at-switch" title="Generate documents for this job"><input type="checkbox" data-at-cover="${Number(j.id)}" ${j.makeCover?'checked':''} aria-label="Make cover letter for ${esc(j.title)}"><span></span></label>`;
+  const visible = () => (Array.isArray(jobs) ? jobs : []).filter(j =>
+    (!state.search || info(j).toLowerCase().includes(state.search)) &&
+    (!state.stage || j.stage === state.stage)
+  );
+  function draw(){
+    const all = Array.isArray(jobs) ? jobs : [];
+    const recentDates = recentPostingDateKeys();
+    const newCount = all.filter(j => recentDates.has(postedDateKey(j.date))).length;
+    $at('at-count-new').textContent = newCount;
+    if (all.length && newCount === 0 && !window.__atDateDiagnosticLogged) {
+      window.__atDateDiagnosticLogged = true;
+      console.info('[Overview] New Jobs: 0. Compared today/yesterday:', Array.from(recentDates),
+        'Sample date values from Sheet:', all.slice(0, 5).map(j => j.date));
+    }
+    $at('at-count-total').textContent = all.length;
+    $at('at-count-interested').textContent = all.filter(j => String(interestOf(j) || '').trim().toLowerCase() === 'interested').length;
+    $at('at-count-selected').textContent = all.filter(j=>j.makeCover).length;
+    $at('at-count-done').textContent = all.filter(docsReady).length;
+    const matches = visible().sort((a,b) => Number(b.rating||0)-Number(a.rating||0));
+    const totalPages = Math.max(1,Math.ceil(matches.length/state.perPage));
+    state.page = Math.min(state.page,totalPages-1);
+    const from = state.page*state.perPage;
+    const pageRows = matches.slice(from,from+state.perPage);
+    $at('at-count-visible').textContent = matches.length ? `Showing ${from+1}–${from+pageRows.length} of ${matches.length} jobs` : 'No matching jobs';
+    $at('at-page').textContent = state.page+1;
+    $at('at-prev').disabled = state.page===0;
+    $at('at-next').disabled = state.page>=totalPages-1;
+    $at('at-table-body').innerHTML = pageRows.length ? pageRows.map(j=>
+      `<tr><td><button class="at-job-button" type="button" data-at-open="${Number(j.id)}">${esc(j.title||'Untitled job')}</button></td>
+        <td class="at-company">${esc(j.company||'—')}</td><td>${scoreHtml(j)}</td><td>${toggleHtml(j)}</td>
+        <td>${docHtml(j.resumeLink,'Resume')}</td><td>${docHtml(j.coverLetter,'Cover Letter')}</td>
+        <td><span class="at-badge at-stage ${stageClass(j.stage)}">${esc(j.stage||'To review')}</span></td></tr>`
+    ).join('') : '<tr><td class="at-empty" colspan="7">No jobs match your search.</td></tr>';
+    $at('at-mobile-cards').innerHTML = pageRows.length ? pageRows.map(j=>
+      `<article class="at-mobile-card"><div class="at-mobile-header"><button class="at-job-button" type="button" data-at-open="${Number(j.id)}">${esc(j.title||'Untitled job')}</button>${scoreHtml(j)}</div>
+       <p class="at-mobile-company">${esc(j.company||'—')}</p><span class="at-badge at-stage ${stageClass(j.stage)}">${esc(j.stage||'To review')}</span>
+       <div class="at-mobile-links">${docHtml(j.resumeLink,'Resume')}${docHtml(j.coverLetter,'Cover Letter')}</div>
+       <div class="at-mobile-footer"><span>Make Cover</span>${toggleHtml(j)}</div></article>`
+    ).join('') : '<p class="at-empty">No jobs match your search.</p>';
+  }
+
+  $at('at-search').addEventListener('input', event => {state.search=event.target.value.trim().toLowerCase();state.page=0;draw();});
+  const filter = $at('at-stage-filter');
+  stages.forEach(stage => {const opt=document.createElement('option');opt.value=stage;opt.textContent=stage;filter.appendChild(opt);});
+  filter.addEventListener('change', event=>{state.stage=event.target.value;state.page=0;draw();});
+  $at('at-prev').addEventListener('click',()=>{if(state.page>0){state.page--;draw();}});
+  $at('at-next').addEventListener('click',()=>{state.page++;draw();});
+  overview.addEventListener('click',event=>{
+    const button=event.target.closest('[data-at-open]');
+    if(!button)return;
+    const id=Number(button.dataset.atOpen);
+    // Navigate to the ORIGINAL job search/detail view, which is unchanged.
+    selectedId=id;
+    goToPage('all-jobs');
+    selectJob(id);
+  });
+  overview.addEventListener('change',event=>{
+    const input=event.target.closest('input[data-at-cover]');
+    if(!input)return;
+    const job = jobs.find(j=>j.id===Number(input.dataset.atCover));
+    if(!job)return;
+    const old=Boolean(job.makeCover), next=Boolean(input.checked);
+    if(old===next)return;
+    job.makeCover=next;
+    // Reuse the ORIGINAL save/rollback mechanism (same Sheet + row linkage).
+    renderList();
+    saveToSheet(job,'makeCover',next,()=>{job.makeCover=old;renderList();});
+  });
+
+  // The original data loader calls updateStats after Google Sheets returns.
+  // Wrap only that function so Overview refreshes with the same live data.
+  const originalUpdateStats=updateStats;
+  updateStats=function(){const result=originalUpdateStats.apply(this,arguments);draw();return result;};
+  draw();
+})();
+</script>
 </body>
 </html>

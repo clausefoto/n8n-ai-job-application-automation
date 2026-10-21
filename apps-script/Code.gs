@@ -15,6 +15,7 @@ function getJobs() {
   const sheet = getJobsSheet_();
   const dataRange = sheet.getDataRange();
   const values = dataRange.getValues();
+  const displayValues = dataRange.getDisplayValues();
   const richValues = dataRange.getRichTextValues();
   const formulas = dataRange.getFormulas();
   if (values.length < 2) return [];
@@ -46,13 +47,19 @@ function getJobs() {
       return match ? match[1] : '';
     };
     const remote = toBoolean_(get('Remote'));
+
+    // Read the calendar date exactly as displayed in Google Sheets.
+    // Converting a date-cell Date object with the SCRIPT timezone can shift
+    // 2026-10-20 to October 19. The displayed value avoids that error.
+    const postedDate = String(displayValues[index + 1][columns.date] || '').trim();
+
     return [{
       id: index + 2,
       title: asText_(get('Title')),
       description: asText_(get('Job Description')),
       platform: asText_(get('Platform')),
       link: asText_(get('Link')),
-      date: formatDate_(get('Date')),
+      date: postedDate,
       rating: Number(get('Rating')) || 0,
       company: asText_(get('Company Name')),
       score: asText_(get('Score breakdown')),
@@ -67,7 +74,8 @@ function getJobs() {
       resumeLink: getLink('Resume'),
       companyLogoUrl: asText_(get('Company Logo URL') || get('Company Logo')),
       interestStatus: interestStatus_(get('Not Interested'), get('Not Interested Reason')),
-      notInterested: ['Not interested', 'Not relevant', 'Not qualified', 'Military', 'Not remote'].includes(interestStatus_(get('Not Interested'), get('Not Interested Reason')))
+      notInterested: ['Not interested', 'Not relevant', 'Not qualified', 'Military', 'Not remote']
+        .includes(interestStatus_(get('Not Interested'), get('Not Interested Reason')))
     }];
   });
 }

@@ -24,3 +24,11 @@ The dashboard uses Apps Script's `google.script.run` bridge, so opening `Index.h
 ## Privacy
 
 This repository is public. Keep spreadsheet IDs, Apps Script project/deployment IDs and URLs, OAuth credentials, actual job records, résumé/cover-letter links, and personal candidate details out of commits and screenshots. If you suspect one was committed, remove it from the repository history and rotate/revoke the exposed credential where applicable.
+
+## Overview dashboard update (October 2026)
+
+The **Overview** page uses a small additive block appended to the original `Index.html` rather than replacing the other pages. It has New Jobs, Jobs Tracked, Interested Jobs, Selected for Cover Letter, and Docs Generated counters, plus a searchable table. The **Job Search**, **Pipeline**, **Documents**, and **Insights** pages and their behavior remain unchanged.
+
+**New Jobs** counts posting dates equal to the browser's current calendar date or the previous date. It uses the Google Sheet `Date` column—not `Age` or row insertion time. `getJobs()` reads this with `getDisplayValues()` to preserve the Sheet-visible calendar date without script-timezone shifts. **Interested Jobs** counts jobs explicitly marked Interested, independent of the cover-letter selection flag.
+
+To deploy, synchronize **both** `Code.gs` and `Index.html` into your Apps Script project, then use **Test deployments**. Updating the repository alone does not deploy changes to the live Google Apps Script web app.
