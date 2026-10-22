@@ -6,7 +6,23 @@ Built with **n8n, Docker / Unraid, Apify, JavaScript, OpenAI, and Google Sheets 
 
 > **Human in the loop:** Jobs are selected manually for application preparation. This project does not automatically submit job applications.
 
-![Overview of the two branches of the n8n workflow](docs/images/workflow-overview.svg)
+## The actual n8n workflow
+
+![Actual n8n workflow editor showing both automation branches](docs/images/n8n-workflow-screenshot.webp)
+
+*My n8n workflow canvas. Job discovery and scoring are in the upper branch; selected-application preparation, AI review, and Google Docs creation are in the lower branch. The screenshot shows no credentials or private input data.*
+
+## Where it started
+
+This project began with **Jono Catliff's** tutorial, [**Automate Your Job Search Using AI (Indeed, LinkedIn, ZipRecruiter)**](https://www.youtube.com/watch?v=LIzZRgfW4ok&t=579s).
+
+I started by following the job-search automation concept, then kept finding things I wanted to improve. It snowballed into a larger self-hosted project with a Google Sheets-backed dashboard, job-fit scoring, human-selected applications, a verified career profile, a separate AI review step, and styled résumé and cover-letter generation through the Google Docs API.
+
+Credit to Jono for the original inspiration. The additional workflow logic, dashboard, review steps, and document system are my own extensions.
+
+[![Watch the YouTube video that inspired this project](https://img.youtube.com/vi/LIzZRgfW4ok/hqdefault.jpg)](https://www.youtube.com/watch?v=LIzZRgfW4ok&t=579s)
+
+*Click the thumbnail to watch the original tutorial on YouTube.*
 
 ## What it does
 
@@ -72,7 +88,7 @@ See the [node-level architecture guide](docs/architecture.md) for exact exported
 │   ├── security.md
 │   ├── troubleshooting.md
 │   ├── screenshots.md
-│   └── images/workflow-overview.png
+│   └── images/\n│       ├── n8n-workflow-screenshot.webp\n│       └── workflow-overview.svg
 ├── workflows/
 │   ├── indeed-job-discovery-and-application-generator.sanitized.json
 │   └── README.md
