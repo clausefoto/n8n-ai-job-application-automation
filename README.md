@@ -44,12 +44,19 @@ The sample configuration shows both schedule triggers **disabled**. Manual testi
 - OAuth-based Google API integration, structured-data processing, debugging of item links, and handling API quota limits.
 - Manual selection and final document review before an application is sent to an employer.
 
-## Dashboard guide
+## Dashboard screenshots
 
-The private Google Sheets dashboard supports job review, application tracking, interest decisions, and generated document links. See the [dashboard guide](docs/dashboard.md) and [illustrative screenshots](docs/screenshots.md). The screenshots use fictional data; the live dashboard and Sheet are private.
+The dashboard is a Google Apps Script web app connected to a private Google Sheet. It supports job review, application tracking, interest decisions, and links to generated documents. See the [dashboard guide](docs/dashboard.md) for how it works.
 
+**These are sanitized illustrations with fictional job data, not screenshots of the authenticated live dashboard or Sheet.**
 
+### Dashboard overview
 
+![Illustrative dashboard overview with fictional metrics and pipeline charts](docs/images/dashboard-overview.svg)
+
+### All Jobs and job details
+
+![Illustrative All Jobs view with searchable listings, job details, and fictional document links](docs/images/dashboard-all-jobs.svg)
 
 ## Workflow layout
 
@@ -84,11 +91,19 @@ See the [node-level architecture guide](docs/architecture.md) for exact exported
 ├── README.md
 ├── docs/
 │   ├── architecture.md
+│   ├── dashboard.md
 │   ├── setup.md
 │   ├── security.md
 │   ├── troubleshooting.md
-│   ├── screenshots.md
-│   └── images/\n│       ├── n8n-workflow-screenshot.webp\n│       └── workflow-overview.svg
+│   └── images/
+│       ├── n8n-workflow-screenshot.webp
+│       ├── workflow-overview.svg
+│       ├── dashboard-overview.svg
+│       └── dashboard-all-jobs.svg
+├── apps-script/
+│   ├── Code.gs
+│   ├── Index.html
+│   └── README.md
 ├── workflows/
 │   ├── indeed-job-discovery-and-application-generator.sanitized.json
 │   └── README.md

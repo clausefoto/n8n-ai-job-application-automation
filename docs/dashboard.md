@@ -46,4 +46,4 @@ The current Apps Script source is in [`apps-script/`](../apps-script/README.md).
 
 ## Deployment and privacy
 
-Deploy the Apps Script web app to execute as an account that can edit the Sheet, and restrict access to that account. Keep deployment URLs and Sheet IDs private. Do not publish real job rows, candidate records, document URLs or IDs, or screenshots of the authenticated dashboard. See [Screenshots](screenshots.md).
+Deploy the Apps Script web app to execute as an account that can edit the Sheet, and restrict access to that account. Keep deployment URLs and Sheet IDs private. Do not publish real job rows, candidate records, document URLs or IDs, or screenshots of the authenticated dashboard. See the [dashboard illustrations](../README.md#dashboard-screenshots) in the main README.
