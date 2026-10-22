@@ -58,31 +58,11 @@ The dashboard is a Google Apps Script web app connected to a private Google Shee
 
 ![Illustrative All Jobs view with searchable listings, job details, and fictional document links](docs/images/dashboard-all-jobs.svg)
 
-## Workflow layout
+## Workflow architecture
 
-```mermaid
-flowchart TB
-  subgraph D[Discovery and rating]
-    A[Scheduled Indeed search] --> B[Apify actor and dataset]
-    B --> C[Append or update job in Google Sheets]
-    C --> E[Get unrated rows]
-    E --> F[AI fit rating]
-    F --> G[Write score and explanation]
-  end
-  subgraph P[Application preparation]
-    H[Selected pending rows] --> I[Load private career profile]
-    I --> J[AI résumé and cover letter]
-    J --> K[AI factual/editorial review]
-    K --> L[Validate + prepare two items]
-    L --> M[Build Google Docs replacements]
-    M --> N[Copy styled template]
-    N --> O[Insert text with Docs API]
-    O --> Q[Group document links by Link]
-    Q --> R[Update matching Sheets row]
-  end
-```
+The [actual n8n workflow screenshot](docs/images/n8n-workflow-screenshot.webp) above shows the full 19-node workflow, including the job discovery/scoring branch and the selected-application preparation branch.
 
-See the [node-level architecture guide](docs/architecture.md) for exact exported node names and data handling.
+See the [architecture and node reference](docs/architecture.md) for each branch's responsibilities, integrations, and implementation details. The architecture guide uses the real n8n canvas instead of simplified diagrams that could diverge from the implementation.
 
 ## Project contents
 
@@ -97,7 +77,6 @@ See the [node-level architecture guide](docs/architecture.md) for exact exported
 │   ├── troubleshooting.md
 │   └── images/
 │       ├── n8n-workflow-screenshot.webp
-│       ├── workflow-overview.svg
 │       ├── dashboard-overview.svg
 │       └── dashboard-all-jobs.svg
 ├── apps-script/
