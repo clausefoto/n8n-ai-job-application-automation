@@ -2,9 +2,11 @@
 
 The current project has **one n8n workflow with two independent branches and 23 nodes**. Both branches share the Google Sheets job database. This page documents the latest provided n8n export (October 2026).
 
-![Simplified 23-node workflow topology](images/workflow-schematic.svg)
+![Actual 23-node n8n workflow shown in the editor on October 23, 2026](images/n8n-workflow-screenshot-oct-2026.webp)
 
-*This is an architectural schematic, not the original editor screenshot. The [older editor screenshot](images/n8n-workflow-screenshot.webp) depicts a previous iteration.*
+*Actual n8n editor screenshot of the current two-branch workflow. The [previous editor screenshot](images/n8n-workflow-screenshot.webp) documents an earlier iteration.*
+
+For a simplified view of the same processing stages, see the [architecture schematic](images/workflow-schematic.svg).
 
 ## Branch A — Discover, screen and score jobs
 
