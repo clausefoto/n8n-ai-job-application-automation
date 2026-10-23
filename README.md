@@ -10,7 +10,6 @@ Built with **n8n, Docker / Unraid, Apify, JavaScript, OpenAI, and Google Sheets 
 
 ![Actual 23-node n8n workflow screenshot showing eligibility filtering, job scoring, and application document generation](docs/images/n8n-workflow-screenshot-oct-2026.webp)
 
-*Actual n8n editor screenshot from October 23, 2026. The upper branch finds, filters, and scores jobs; the lower branch prepares and reviews résumé and cover-letter documents for manually selected applications. [Older editor screenshot](docs/images/n8n-workflow-screenshot.webp) · [Simplified architecture diagram](docs/images/workflow-schematic.svg).*
 
 ## Where it started
 
