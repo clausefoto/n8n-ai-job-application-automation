@@ -28,7 +28,7 @@ Do not invent certifications, degrees, technical experience, or achievements tha
 
 2. SALARY — 25 POINTS
 
-The candidate's preferred salary is $100,000 per year, approximately matching their previous compensation.
+This reusable example uses a preferred salary of $100,000 per year. Adjust the salary bands to match the candidate's own preferences.
 
 Evaluate base salary using the following scale:
 
