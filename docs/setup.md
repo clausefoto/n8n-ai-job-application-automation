@@ -1,65 +1,64 @@
 # Setup and reproduction
 
-The [sanitized combined workflow](../workflows/indeed-job-discovery-and-application-generator.sanitized.json) is a **reference export**, not a plug-and-play deployment. It represents **one n8n workflow containing two branches**. Both schedule triggers are disabled.
+The [sanitized combined workflow](../workflows/indeed-job-discovery-and-application-generator.sanitized.json) represents the newer **23-node, two-branch n8n workflow**. It is a **reference export**, not a plug-and-play deployment. **Both schedule triggers are disabled**.
 
 ## Prerequisites
 
-- Self-hosted n8n in Docker (this prototype uses Unraid).
-- Access to Apify and a compatible **Indeed job-search actor**.
-- OpenAI API credentials.
-- A Google Cloud project with Sheets, Drive and Docs APIs enabled, along with OAuth 2.0 authorization.
-- A Google Sheet for tracking job listings.
+- n8n running in Docker (the original is hosted on Unraid).
+- An Apify account and compatible **Indeed job-search actor**.
+- OpenAI API credentials for the four AI processing nodes.
+- A Google Cloud project with Sheets, Drive and Docs APIs enabled, plus OAuth 2.0 authorization.
+- A Google Sheet used as the job database.
 - Three native Google Docs templates: résumé **with projects**, résumé **without projects**, and **cover letter**.
 
-## Import and configure
+## Configure and import
 
 1. Import `workflows/indeed-job-discovery-and-application-generator.sanitized.json` into n8n.
-2. Open the Apify node and replace `YOUR_APIFY_ACTOR_ID`; select your Apify credential.
-3. Update the Google Sheets nodes with `YOUR_GOOGLE_SPREADSHEET_ID`, the correct sheet tab, and your own credentials.
-4. Set `YOUR_OUTPUT_FOLDER_ID` and the three Google Docs template identifiers in the Google Drive Copy node.
-5. Reconnect OpenAI API and Google Drive credentials to the AI and HTTP Request nodes.
-6. In `Load Career Profile`, replace the **fictional example** with a private, verified career profile. Review AI instructions and experience title matching to match *your own* data.
-7. Test both branches separately with fictional job data; enable schedules only after successful manual testing.
+2. Configure the Apify actor (`YOUR_APIFY_ACTOR_ID`) and API credentials.
+3. Point **every Google Sheets node**—including **Update Google Sheet Ratings1** and **Grab additional pending rating Rows**—at your own spreadsheet and sheet tab.
+4. Set the Google Drive folder and all three Docs template IDs, and authorize the relevant Google API credentials.
+5. Reconnect OpenAI credentials and verify supported model IDs.
+6. In **Load Rating Career Profile** and **Load Career Profile**, replace the **fictional sample** with your own *private verified career profile*. These are separate Set nodes.
+7. Adjust [eligibility prompt geography placeholders](../prompts/eligibility-filter.system.txt) and the job-scoring salary preference for your own requirements.
+8. Check the document-preparation Code nodes and template placeholders against the roles, fields and date formatting in your actual profile.
+9. Test both branches with fictional listings before enabling the two schedules.
 
-The public export intentionally contains **no actual credentials, private resource IDs, execution data or real candidate profile**.
+The public export includes **no private career profile, credential references, Google resource IDs, or execution data**.
 
-## Required Google Sheet columns
+## Required Sheet columns
 
-The workflow references these exact field names:
-
-| Column | Used for |
+| Column | Purpose |
 | --- | --- |
-| `Link` | Matching previously stored jobs and final documents |
-| `Title` | Job title for AI tailoring |
-| `Company Name` | Hiring company |
-| `Job Description` | Position requirements |
-| `Rating` | AI job-fit score |
-| `Score breakdown` | Explanation of rating |
-| `Make Cover` | Human approval signal |
-| `Resume` | New Google Doc URL |
-| `Cover Letter` | New Google Doc URL |
+| `Link` | Stable key used for both scoring updates and document links |
+| `Title`, `Company Name`, `Job Description` | Job details and AI inputs |
+| `City`, `Remote`, `Type`, `Salary`, `Benefits` | Filtering and weighted scoring inputs |
+| `Rating` | Blank when unrated, `0` when rejected, or `1–100` when rated |
+| `Not Interested` / `Not Interested Reason` | Eligibility rejection flag and explanation |
+| `Score breakdown` | Detailed 50/25/25 rating reasoning |
+| `Make Cover` | Manual approval for application preparation |
+| `Resume` / `Cover Letter` | Links to generated Google Docs |
 
-Other fields such as `Benefits`, `Remote`, `Type`, `Salary`, `Date`, and `City` may be present.
-
-The current discovery branch matches rows by the provider's job `Link`; it does not guarantee URL canonicalization. Consider stripping tracking parameters before storing URLs.
+The upsert matches by provider `Link`. The current export does not fully canonicalize job URLs or remove all tracking parameters.
 
 ## Document templates
 
-Placeholders must match the Code node `Build Template Replacements` **exactly**. Examples:
+Template placeholders must match **Build Template Replacements** exactly:
 
 - Résumé: `{{HEADLINE}}`, `{{SUMMARY}}`, `{{SKILLS}}`, `{{SYSADMIN_BULLETS}}`, `{{SPECIALIST_BULLETS}}`, `{{ANALYST_BULLETS}}`.
 - Optional projects: `{{PROJECTS_HEADING}}` and `{{PROJECTS}}`.
 - Cover letter: `{{COMPANY}}`, `{{POSITION}}`, `{{SALUTATION}}`, `{{LETTER_BODY}}`, `{{CLOSING}}`, `{{SIGNATURE}}`.
 
-The **no-projects** template should omit the projects paragraphs **and their borders**, not replace their text with empty strings.
+The no-projects résumé template should omit projects paragraphs and decorative borders entirely. The current workflow's three role-specific placeholders are examples, not a universal experience schema.
 
 ## Validation checklist
 
-- Run one sample Indeed search and confirm the dataset maps to the expected Sheet columns.
-- Check rating calculations manually. **The current prompt hard-codes Benefits: Yes and Type: Full Time.**
-- Select one *fictional* sample job and inspect the initial and reviewed AI JSON.
-- Confirm both documents are generated using the correct template, include complete required history, and have no visible placeholders.
-- Confirm both links were written to the **same** selected `Link` row, with no new duplicate.
-- Review API quota limits, errors and retries before enabling schedules.
+- Import test: both schedule triggers are disabled and all expected nodes and connections are present.
+- Dataset test: one fictional Indeed listing is upserted by `Link`, without producing duplicate rows.
+- Eligibility test: a clearly disallowed in-person listing or mandatory military-clearance job receives `Rating=0` and an appropriate reason.
+- Pass-through test: a genuinely eligible job remains unrated after the eligibility update, is picked up by the **second pending-rating lookup**, and receives a **1–100** score with the appropriate fit / salary / benefits breakdown.
+- Verify the actual `Benefits` and `Type` inputs rather than assuming they are present.
+- Document test: one *manually selected* fictional job produces a validated résumé and cover letter with no unsupported career claims.
+- Verify both Google Doc links update the same existing `Link` row, not a new duplicate.
+- Check AI costs, rate limits, Sheets read quotas, item lineage, and retry behavior before enabling schedules.
 
-See [Architecture](architecture.md), [Troubleshooting](troubleshooting.md) and [Security](security.md).
+See [Architecture](architecture.md), [Troubleshooting](troubleshooting.md), and [Security](security.md).
