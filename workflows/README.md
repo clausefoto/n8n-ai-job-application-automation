@@ -1,13 +1,27 @@
 # Combined n8n workflow export
 
-[`indeed-job-discovery-and-application-generator.sanitized.json`](indeed-job-discovery-and-application-generator.sanitized.json) is the **sanitized 19-node workflow** from the project's combined discovery, scoring, and application-preparation canvas.
+`indeed-job-discovery-and-application-generator.sanitized.json` is a privacy-safe example of the **23-node workflow** reflected in the latest export (October 2026).
 
-It contains **two branches within one n8n workflow**:
-1. **Indeed discovery and AI job scoring** through Apify, Google Sheets, and OpenAI.
-2. **Manually selected application preparation** through two AI calls, JavaScript Code nodes, Google Drive template copying, the Google Docs API, and Google Sheets link updates.
+It contains **two branches**: job discovery/eligibility/100-point rating, and manual-selection résumé/cover-letter drafting with AI review and Google Docs templates.
 
-This is a **demonstration/reference export**, not the original live configuration. It includes fictional candidate data and placeholder identifiers. Credentials and pinned execution data are intentionally excluded. Both schedule triggers are disabled.
+## Latest architecture changes
 
-To use it, import the JSON in n8n, configure your own credentials, actor and document resource IDs, and replace the fictional profile with accurate private information. The current AI/JavaScript formatting expects particular experience roles and is **not a generic résumé product**.
+- Added **Filter Non-remote and Military jobs** to analyze location and clearance restrictions rather than trusting the `Remote` flag.
+- Added **Update Google Sheet Ratings1** to write automatic rejection ratings and reasons.
+- Added **Grab additional pending rating Rows** so the full scorer reads only jobs still missing a rating.
+- Added **Load Rating Career Profile** for 50/25/25 career-fit / salary / benefits evaluation.
+- The résumé document-check trigger changed to **every 15 minutes**.
+- The source workflow uses separate AI models for filtering, rating, drafting and final review.
 
-Refer to [Setup](../docs/setup.md), [Architecture](../docs/architecture.md), and [Security](../docs/security.md). Review job-rating assumptions before using scores for real decisions.
+## Safety and customization
+
+- **Both schedule triggers are disabled.**
+- Credential references, private Google and Apify identifiers, execution data and pinned results are removed.
+- The real career profiles and identifying details are replaced with fictional examples.
+- The AI prompts use the privacy-safe public versions from [../prompts/](../prompts/README.md), not raw personal prompt data.
+- You must provide your own authorized credentials, actors, spreadsheets, folder and template IDs, and verified career information.
+- The code and Docs templates still assume certain role names and experience fields. Adapt them to your own career profile before use.
+
+This is a demonstrative project export, **not** an autonomous job application service. Final application submission requires human action.
+
+See [Setup](../docs/setup.md), [Architecture](../docs/architecture.md), and [Security](../docs/security.md).

@@ -6,11 +6,11 @@ Built with **n8n, Docker / Unraid, Apify, JavaScript, OpenAI, and Google Sheets 
 
 > **Human in the loop:** Jobs are selected manually for application preparation. This project does not automatically submit job applications.
 
-## The actual n8n workflow
+## Updated n8n workflow
 
-![Actual n8n workflow editor showing both automation branches](docs/images/n8n-workflow-screenshot.webp)
+![Updated workflow showing eligibility filtering, scored job review, and AI-assisted application generation](docs/images/workflow-schematic.svg)
 
-*My n8n workflow canvas. Job discovery and scoring are in the upper branch; selected-application preparation, AI review, and Google Docs creation are in the lower branch. The screenshot shows no credentials or private input data.*
+*Architecture diagram of the current 23-node workflow. It shows the two branches and their major processing stages; it is not a screenshot of the n8n editor. An [earlier editor screenshot](docs/images/n8n-workflow-screenshot.webp) remains available for historical comparison.*
 
 ## Where it started
 
@@ -26,18 +26,19 @@ Credit to Jono for the original inspiration. The additional workflow logic, dash
 
 ## What it does
 
-This is **one n8n workflow containing two branches**, rather than two separate n8n workflows:
+This is **one n8n workflow with two branches**, sharing a Google Sheets database and dashboard:
 
-1. **Job discovery and scoring:** A scheduled Apify **Indeed** search gets new Systems Administrator listings; an upsert into Google Sheets uses the listing's `Link` as the matching key. A second stage reads jobs without ratings, asks an AI model to evaluate fit, and stores a numeric rating with an explanation.
-2. **Application preparation:** After a job is marked `Make Cover` in Sheets, the workflow loads a verified career profile, drafts a tailored résumé and cover letter, performs an additional AI review, validates the result, creates formatted Google Docs from templates, and stores both document links in the original job row.
+1. **Job discovery, eligibility and scoring:** A scheduled Apify/Indeed search gathers listings and upserts them by their `Link` into Sheets. An initial AI screen examines **the full job description**, not just the provider's remote flag, and sets `Rating=0` and a rejection reason for clearly excluded locations or mandatory government/military security clearances. The workflow **re-reads remaining unrated jobs**, loads a separate verified career profile, and assigns a **1–100 score** weighted by career fit (50 points), salary (25), and benefits (25). Scores and explanations update their existing Sheets rows.
+2. **Application preparation after manual selection:** A job marked `Make Cover` is read on a 15-minute schedule. A separate verified career profile is used to draft a tailored résumé and cover letter, perform a second AI review, validate the JSON, fill Google Docs templates and write the document links back to the same job. **No job application is submitted automatically.**
 
-The sample configuration shows both schedule triggers **disabled**. Manual testing is possible, but scheduling must be deliberately enabled after setup and testing.
+For safety, the **public sanitized example disables both triggers**. The private working export can have a different enabled state.
 
 ## Technical highlights
 
 - Multi-service orchestration in self-hosted **n8n** running in Docker on Unraid.
 - **Apify** actor + dataset consumption, with results stored in **Google Sheets** using the `Link` field for row matching.
-- Independent **AI job scoring** and **two-step application drafting/review**.
+- **Two-stage AI filtering and scoring**: reject clearly ineligible jobs first, then score eligible listings from 1 to 100 using separate career-profile context.
+- **Two-step application drafting/review** for manually selected opportunities.
 - **JavaScript Code nodes** for validating model-generated JSON, preserving item relationships, splitting résumé and cover-letter records, and grouping final document URLs.
 - **Google Drive** template copying and **Google Docs** `documents.batchUpdate` / `replaceAllText` for consistent formatting.
 - Conditional résumé templates for jobs with or without a relevant personal projects section.
@@ -60,15 +61,17 @@ The dashboard is a Google Apps Script web app connected to a private Google Shee
 
 ## Workflow architecture
 
-The [actual n8n workflow screenshot](docs/images/n8n-workflow-screenshot.webp) above shows the full 19-node workflow, including the job discovery/scoring branch and the selected-application preparation branch.
-
-See the [architecture and node reference](docs/architecture.md) for each branch's responsibilities, integrations, and implementation details. The architecture guide uses the real n8n canvas instead of simplified diagrams that could diverge from the implementation.
+The [updated 23-node architecture](docs/architecture.md) documents the eligibility screen, re-query of pending jobs, separate rating career-profile loader and 15-minute application-check schedule. The [sanitized workflow JSON](workflows/indeed-job-discovery-and-application-generator.sanitized.json) reflects that node graph.
 
 ## Project contents
 
 ```text
 .
 ├── README.md
+├── LICENSE
+├── prompts/
+│   ├── README.md
+│   └── eight reusable prompt message files
 ├── docs/
 │   ├── architecture.md
 │   ├── dashboard.md
@@ -76,7 +79,8 @@ See the [architecture and node reference](docs/architecture.md) for each branch'
 │   ├── security.md
 │   ├── troubleshooting.md
 │   └── images/
-│       ├── n8n-workflow-screenshot.webp
+│       ├── workflow-schematic.svg
+│       ├── n8n-workflow-screenshot.webp (earlier workflow)
 │       ├── dashboard-overview.svg
 │       └── dashboard-all-jobs.svg
 ├── apps-script/
@@ -98,7 +102,8 @@ The [workflow export](workflows/indeed-job-discovery-and-application-generator.s
 | Field | Purpose |
 | --- | --- |
 | `Link` | Unique job URL, used as the row-matching key |
-| `Rating` / `Score breakdown` | Job-fit rating and justification |
+| `Rating` / `Score breakdown` | Rejection value 0, or detailed 1–100 job-fit score and explanation |
+| `Not Interested` / `Not Interested Reason` | Screening rejection flag and reason |
 | `Make Cover` | Human selection flag |
 | `Resume` | Link to generated styled Google Doc |
 | `Cover Letter` | Link to generated styled Google Doc |
@@ -124,8 +129,6 @@ Start with [docs/setup.md](docs/setup.md), then consult the [security checklist]
 
 
 This is a **personal automation / systems-integration portfolio project**, not an autonomous application service or a production-ready product.
-
-## License
 
 ## License
 
