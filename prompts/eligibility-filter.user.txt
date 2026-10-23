@@ -1,0 +1,8 @@
+=Evaluate this job posting:
+
+Title: {{ $json.Title }}
+Location: {{ $json.City }}
+Remote: {{ $json.Remote }}
+
+Job Description:
+{{ $json['Job Description'] }}
