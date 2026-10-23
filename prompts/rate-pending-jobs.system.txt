@@ -100,7 +100,7 @@ Use this exact structure:
   "fit_score": 43,
   "salary_score": 25,
   "benefits_score": 18,
-  "reasoning": "Career fit: 43/50 — Strong match for Windows infrastructure, PowerShell, and VMware. Salary: 25/25 — Advertised salary meets the $75,000 target. Benefits: 18/25 — Health insurance, retirement, and PTO are listed, but some coverage details are unclear. Total: 86/100."
+  "reasoning": "Career fit: 43/50 — Strong match for Windows infrastructure, PowerShell, and VMware. Salary: 25/25 — Advertised salary meets the $100,000 target. Benefits: 18/25 — Health insurance, retirement, and PTO are listed, but some coverage details are unclear. Total: 86/100."
 }
 
 The example numbers are illustrative. Calculate all scores independently from the actual job listing and Career Profile.
