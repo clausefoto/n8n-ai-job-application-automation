@@ -1,0 +1,19 @@
+=Create a targeted resume and cover letter for the following position.
+
+JOB TITLE:
+{{ $('Grab pending Cover Letter Rows').item.json.Title }}
+
+COMPANY:
+{{ $('Grab pending Cover Letter Rows').item.json['Company Name'] }}
+
+JOB DESCRIPTION:
+{{ $('Grab pending Cover Letter Rows').item.json['Job Description'] }}
+
+CANDIDATE MASTER PROFILE:
+{{ JSON.stringify($json) }}
+
+Analyze the job requirements and identify the most relevant verified skills, professional accomplishments, and personal projects.
+
+Produce a compelling, accurate resume and cover letter. Make the writing specific to this employer and role.
+
+Return the results in the JSON structure specified by the system message.
