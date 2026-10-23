@@ -7,33 +7,19 @@ CRITICAL: You must preserve the candidate's full relevant employment history. Do
 
 REQUIRED EMPLOYMENT HISTORY
 
-The resume must include these three positions, in this order:
+Use the verified master career profile as the authoritative source for employers, position titles, dates, and accomplishments.
 
-1. Systems Administrator — Mammoth Mountain
-   September 2021 – August 2026
-   Required: 5–7 substantive achievement bullets.
+Include all relevant verified employment positions in reverse chronological order. Preserve names and exact dates from the profile, and do not merge distinct positions or remove earlier employment to meet a page target.
 
-2. System Specialist — Mammoth Mountain
-   November 2019 – September 2021
-   Required: 2–3 substantive achievement bullets.
+For the most recent relevant role, target 5–7 substantive verified achievements when available. For other relevant positions, target approximately 2–4 verified achievements each. Never invent accomplishments to meet a bullet target.
 
-3. PC Systems Analyst — Mammoth Mountain
-   December 2012 – November 2019
-   Required: 2–3 substantive achievement bullets.
-
-Use the verified master career profile as the factual source.
-
-If the generated resume is missing one of these jobs or has too few bullets, restore or expand the experience using ONLY verified facts from the master career profile.
+If the generated resume omits relevant verified positions or achievements, restore them using ONLY information in the master career profile.
 
 Never invent accomplishments, technologies, metrics, certifications, job titles, or responsibilities.
 
-Do not combine the three positions into one job.
-
-Do not remove earlier employment to satisfy a page-length target.
-
 RESUME EDITING RULES
 
-- Preserve the three required employment positions.
+- Preserve all relevant employment positions verified in the career profile.
 - Preserve substantive technical accomplishments.
 - Correct grammar, spelling, repetition, and unnatural wording.
 - Prefer clear, direct technical language.
@@ -43,7 +29,7 @@ RESUME EDITING RULES
 - Keep the technical skills section concise.
 - Include up to two relevant personal projects when useful.
 - Projects are optional.
-- Do not include photography employment unless clearly relevant.
+- Do not include unrelated employment unless clearly relevant.
 - A one- or two-page resume is acceptable.
 - Never sacrifice employment history to force one page.
 
@@ -89,17 +75,17 @@ Preserve this structure:
 
 Important schema requirements:
 
-- resume.experience must contain all three required roles.
+- resume.experience must contain all relevant verified roles.
 - Every experience entry must use "achievements" as an array of strings.
 - Do not use "bullets" instead of "achievements".
-- The first position must have 5–7 achievements.
-- The second position must have 2–3 achievements.
-- The third position must have 2–3 achievements.
+- The most recent relevant role should have 5–7 achievements when supported.
+- Other relevant roles should have about 2–4 achievements each when supported.
+- Do not invent achievements to satisfy an exact bullet count.
 - resume.skills must remain an array.
 - resume.projects must remain an array, even when empty.
 - cover_letter must remain an object.
 
-Before responding, internally verify that all three employment positions and their achievement arrays are present.
+Before responding, internally verify that all relevant verified employment positions and their achievement arrays are present.
 
 Return the complete corrected application JSON.
 
@@ -114,9 +100,9 @@ Prioritize substantive, relevant experience over minimizing
 word count.
 
 Include:
-- Systems Administrator: 6–7 strong achievement bullets.
-- System Specialist: 3 achievement bullets.
-- PC Systems Analyst: 3 achievement bullets.
+- The most recent relevant role: up to 6–7 verified achievement bullets.
+- Other relevant positions: approximately 2–4 bullets each when supported.
+- All relevant positions from the candidate career profile.
 - Up to 2 relevant technical projects when appropriate.
 
 Write a focused professional summary of approximately
