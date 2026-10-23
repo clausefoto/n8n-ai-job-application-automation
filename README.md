@@ -120,14 +120,27 @@ Start with [docs/setup.md](docs/setup.md), then consult the [security checklist]
 
 ## Current limitations and next steps
 
-- The exported rating prompt currently **hard-codes benefits and full-time status**; these should instead use actual job data, with unknown values handled explicitly.
-- Selected portions of the document-handling pipeline still depend on item ordering. Robust keyed joins and idempotent retries would strengthen reliability.
-- The export contains an example résumé with fixed experience-placeholder expectations. A reusable product should make role count, names, and formatting data-driven.
 - Resume page length is not yet automatically validated; PDF export, quality checks, and document versioning are potential additions.
-- Both schedule triggers are disabled in the shared export.
+
 
 This is a **personal automation / systems-integration portfolio project**, not an autonomous application service or a production-ready product.
 
 ## License
 
-No license selected yet. See the repository owner for permissions to reuse or redistribute.
+## License
+
+This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+
+Copyright © 2026 Matt Clausen.
+
+You are free to use, modify, distribute, and build upon the original code, workflows, prompts, and documentation in this repository, subject to the terms of the MIT License.
+
+### Third-Party Software and Services
+
+This project integrates with third-party platforms, including n8n, OpenAI, Apify, and Google services.
+
+Each third-party platform retains its own licensing terms, usage restrictions, and API requirements.
+
+In particular, n8n is distributed under the Sustainable Use License, which applies independently of this project's MIT License.
+
+This project is independently developed and is not affiliated with or endorsed by these third-party providers.
