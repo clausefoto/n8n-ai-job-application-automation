@@ -1,0 +1,34 @@
+Evaluate the following job opportunity using the 100-point rating system.
+
+JOB INFORMATION
+
+Title:
+{{ $('Grab pending rating Rows').item.json.Title }}
+
+Company:
+{{ $('Grab pending rating Rows').item.json['Company Name'] }}
+
+Location:
+{{ $('Grab pending rating Rows').item.json.City }}
+
+Remote Status:
+{{ $('Grab pending rating Rows').item.json.Remote }}
+
+Salary:
+{{ $('Grab pending rating Rows').item.json.Salary }}
+
+Employment Type:
+{{ $('Grab pending rating Rows').item.json.Type }}
+
+Listed Benefits:
+{{ $('Grab pending rating Rows').item.json.Benefits }}
+
+FULL JOB DESCRIPTION:
+{{ $('Grab pending rating Rows').item.json['Job Description'] }}
+
+VERIFIED CANDIDATE CAREER PROFILE:
+{{ JSON.stringify($json.careerProfile, null, 2) }}
+
+Compare this job against the complete Career Profile, including professional experience, technical skills, education, and personal projects.
+
+Return the category scores, total score, and reasoning in the required JSON format.

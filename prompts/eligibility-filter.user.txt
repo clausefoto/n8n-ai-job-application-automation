@@ -1,0 +1,12 @@
+Evaluate this job posting:
+
+Title: {{ $json.Title }}
+Company: {{ $json['Company Name'] }}
+Location: {{ $json.City }}
+Remote metadata: {{ $json.Remote }}
+Employment type: {{ $json.Type }}
+
+Read the FULL job description; its explicit requirements take precedence over Remote metadata.
+
+Job Description:
+{{ $json['Job Description'] }}

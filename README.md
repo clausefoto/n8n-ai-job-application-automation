@@ -64,11 +64,25 @@ The [actual n8n workflow screenshot](docs/images/n8n-workflow-screenshot.webp) a
 
 See the [architecture and node reference](docs/architecture.md) for each branch's responsibilities, integrations, and implementation details. The architecture guide uses the real n8n canvas instead of simplified diagrams that could diverge from the implementation.
 
+## AI prompt library
+
+The [AI prompt library](prompts/README.md) contains the eligibility screening, 100-point job rating, résumé/cover-letter generation, and application-review prompts. Original document-generation and review messages are preserved from an earlier export; the eligibility prompt is a generalized template.
+
 ## Project contents
 
 ```text
 .
 ├── README.md
+├── prompts/
+│   ├── README.md
+│   ├── eligibility-filter.system.txt
+│   ├── eligibility-filter.user.txt
+│   ├── rate-pending-jobs.system.txt
+│   ├── rate-pending-jobs.user.txt
+│   ├── create-resume-and-cover-letter.system.txt
+│   ├── create-resume-and-cover-letter.user.txt
+│   ├── review-application.system-1.txt
+│   └── review-application.system-2.txt
 ├── docs/
 │   ├── architecture.md
 │   ├── dashboard.md

@@ -1,0 +1,24 @@
+=
+Review and improve the following application.
+
+VERIFIED CANDIDATE MASTER PROFILE:
+
+{{ JSON.stringify($('Load Career Profile').first().json.candidate_profile ?? $('Load Career Profile').first().json) }}
+
+ORIGINAL GENERATED RESUME AND COVER LETTER:
+
+{{ JSON.stringify($json.output?.flatMap(x => x.content || []).find(c => c.type === 'output_text')?.text ?? $json) }}
+
+Review both documents for factual accuracy, grammar, technical clarity, and relevance.
+
+Restore any missing verified employment accomplishments.
+
+Ensure the final resume contains:
+
+- Systems Administrator: 5–7 achievement bullets
+- System Specialist: 2–3 achievement bullets
+- PC Systems Analyst: 2–3 achievement bullets
+
+Do not remove earlier employment to reduce page count.
+
+Return the complete revised JSON containing both resume and cover_letter.
