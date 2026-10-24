@@ -8,7 +8,9 @@ Built with **n8n, Docker / Unraid, Apify, JavaScript, OpenAI, and Google Sheets 
 
 ## Updated n8n workflow
 
-![Actual 23-node n8n workflow screenshot showing eligibility filtering, job scoring, and application document generation](docs/images/n8n-workflow-screenshot-oct-2026.webp)
+The latest sanitized 35-node workflow adds high-rated-job Telegram notifications, a post-run digest, nightly email reporting, and a direct link into the dashboard. The screenshot below shows an earlier workflow revision; the latest 35-node screenshot is pending upload.
+
+![Earlier n8n workflow screenshot showing eligibility filtering, job scoring, and application document generation](docs/images/n8n-workflow-screenshot-oct-2026.webp)
 
 
 ## Where it started
@@ -60,7 +62,7 @@ The dashboard is a Google Apps Script web app connected to a private Google Shee
 
 ## Workflow architecture
 
-The [updated architecture](docs/architecture.md) documents the eligibility screen, re-query of pending jobs, separate rating career-profile loader and 15-minute application-check schedule. The [sanitized workflow JSON](workflows/indeed-job-discovery-and-application-generator.sanitized.json) reflects the 27-node example, including the optional first-seen and digest-hook nodes.
+The [updated architecture](docs/architecture.md) documents the eligibility screen, re-query of pending jobs, separate rating career-profile loader and 15-minute application-check schedule. The [sanitized workflow JSON](workflows/indeed-job-discovery-and-application-generator.sanitized.json) reflects the latest 35-node example, including Telegram notifications, first-seen metadata, and the nightly email digest.
 
 ## Project contents
 
