@@ -1,0 +1,202 @@
+{
+  "name": "Job Discovery — Daily 9 PM Email and Telegram Digest (public template)",
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Los_Angeles"
+  },
+  "nodes": [
+    {
+      "id": "b7f3e9a4-2cf6-4f80-90dd-000000000011",
+      "name": "Daily 9 PM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        160
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 21 * * *"
+            }
+          ]
+        }
+      },
+      "disabled": true
+    },
+    {
+      "id": "b7f3e9a4-2cf6-4f80-90dd-000000000012",
+      "name": "Digest Configuration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        220,
+        160
+      ],
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"dashboardUrl\": \"https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec\",\n  \"telegramChatId\": \"YOUR_TELEGRAM_CHAT_ID\",\n  \"emailRecipient\": \"YOUR_EMAIL_ADDRESS\"\n}",
+        "options": {}
+      }
+    },
+    {
+      "id": "b7f3e9a4-2cf6-4f80-90dd-000000000013",
+      "name": "Read Jobs for Daily Digest",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        440,
+        160
+      ],
+      "alwaysOutputData": true,
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "YOUR_GOOGLE_SPREADSHEET_ID"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "id",
+          "value": "0"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "b7f3e9a4-2cf6-4f80-90dd-000000000014",
+      "name": "Build Daily Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        0
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\nconst rows=$input.all().map(item=>item.json);\nconst config=$('Digest Configuration').first().json;\nconst zone='America/Los_Angeles';\nconst ymd=d=>new Intl.DateTimeFormat('en-CA',{timeZone:zone,year:'numeric',month:'2-digit',day:'2-digit'}).format(d);\nconst today=ymd(new Date());\nconst dateValue=v=>{const d=new Date(v);return Number.isNaN(d.getTime())?null:d;};\nconst filtered=rows.filter(j=>{const d=dateValue(j['First Seen At']);return d&&ymd(d)===today&&String(j.Link||'').trim()});\nconst esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#39;');\nconst getUrl=j=>String(config.dashboardUrl||'').replace(/\\/$/,'')+'?job='+encodeURIComponent(String(j.Link).trim());\nconst cleanText=s=>String(s??'').replace(/<[^>]*>/g,' ').replace(/\\s+/g,' ').trim();\nconst description=s=>{const v=cleanText(s);return v.length>170?v.slice(0,167)+'…':v};\nconst score=j=>{const n=Number(String(j.Rating??'').trim());return Number.isFinite(n)?n:null;};\nconst sorted=filtered.sort((a,b)=>(score(b)??-1)-(score(a)??-1));\nconst isHigh=j=>score(j)>85;\nconst countHigh=sorted.filter(isHigh).length;\n\nconst lines=sorted.map(j=>'<tr><td style=\"padding:9px;border:1px solid #ddd\">'+esc(j.Title||'Untitled')+'</td><td style=\"padding:9px;border:1px solid #ddd\">'+esc(description(j['Job Description']))+'</td><td style=\"padding:9px;border:1px solid #ddd\">'+esc(j.Type||'Not specified')+'</td><td style=\"padding:9px;border:1px solid #ddd\">'+(score(j)??'Pending')+'</td><td style=\"padding:9px;border:1px solid #ddd\"><a href=\"'+esc(getUrl(j))+'\">View in dashboard</a></td></tr>').join('');\nconst table=sorted.length?'<table style=\"border-collapse:collapse;width:100%;font-family:Arial,sans-serif;font-size:13px\"><thead><tr style=\"background:#eef2f6\"><th style=\"padding:9px;border:1px solid #ddd\">Job title</th><th style=\"padding:9px;border:1px solid #ddd\">Description</th><th style=\"padding:9px;border:1px solid #ddd\">Job type</th><th style=\"padding:9px;border:1px solid #ddd\">Rating</th><th style=\"padding:9px;border:1px solid #ddd\">Dashboard</th></tr></thead><tbody>'+lines+'</tbody></table>':'<p>No new jobs were discovered today.</p>';\nconst html='<div style=\"font-family:Arial,sans-serif;color:#223344\"><p>Hello,</p><p>Here is your daily job summary for '+esc(today)+'.</p><p><strong>'+sorted.length+' new jobs</strong> · '+countHigh+' rated over 85</p>'+table+'<p>These records were first discovered today. Ratings reflect the latest values in Google Sheets.</p></div>';\nreturn [{json:{emailSubject:'Daily job summary — '+today+' ('+sorted.length+' new)',emailHtml:html,newJobs:sorted.length,highRated:countHigh}}];\n"
+      }
+    },
+    {
+      "id": "b7f3e9a4-2cf6-4f80-90dd-000000000015",
+      "name": "Send Daily Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        890,
+        0
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $('Digest Configuration').first().json.emailRecipient }}",
+        "subject": "={{ $json.emailSubject }}",
+        "emailType": "html",
+        "message": "={{ $json.emailHtml }}",
+        "options": {
+          "appendAttribution": false
+        }
+      }
+    },
+    {
+      "id": "b7f3e9a4-2cf6-4f80-90dd-000000000016",
+      "name": "Build Daily Telegram Messages",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        340
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\nconst rows=$input.all().map(item=>item.json);\nconst config=$('Digest Configuration').first().json;\nconst zone='America/Los_Angeles';\nconst ymd=d=>new Intl.DateTimeFormat('en-CA',{timeZone:zone,year:'numeric',month:'2-digit',day:'2-digit'}).format(d);\nconst today=ymd(new Date());\nconst dateValue=v=>{const d=new Date(v);return Number.isNaN(d.getTime())?null:d;};\nconst filtered=rows.filter(j=>{const d=dateValue(j['First Seen At']);return d&&ymd(d)===today&&String(j.Link||'').trim()});\nconst esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#39;');\nconst getUrl=j=>String(config.dashboardUrl||'').replace(/\\/$/,'')+'?job='+encodeURIComponent(String(j.Link).trim());\nconst cleanText=s=>String(s??'').replace(/<[^>]*>/g,' ').replace(/\\s+/g,' ').trim();\nconst description=s=>{const v=cleanText(s);return v.length>170?v.slice(0,167)+'…':v};\nconst score=j=>{const n=Number(String(j.Rating??'').trim());return Number.isFinite(n)?n:null;};\nconst sorted=filtered.sort((a,b)=>(score(b)??-1)-(score(a)??-1));\nconst isHigh=j=>score(j)>85;\nconst countHigh=sorted.filter(isHigh).length;\n\nconst intro='🌙 Daily job digest — '+today+'\\nNew jobs: '+sorted.length+' | Scored 86+: '+countHigh+'\\n\\n';\nconst chunks=[];\nlet current=intro;\nfor(const j of sorted){\n const entry=String(j.Title||'Untitled')+'\\n'+String(j['Company Name']||'Unknown company')+' | '+String(j.Type||'Not specified')+'\\nRating: '+(score(j)??'Pending')+'/100\\n'+description(j['Job Description'])+'\\nDashboard: '+getUrl(j)+'\\n\\n';\n if(current.length+entry.length>3400&&current!==intro){chunks.push(current);current='🌙 Daily digest (continued)\\n\\n';}\n current+=entry;\n}\nif(!sorted.length)current+='No new jobs were discovered today.';\nchunks.push(current);\nreturn chunks.map((telegramText,i)=>({json:{telegramText,chunk:i+1,totalChunks:chunks.length}}));\n"
+      }
+    },
+    {
+      "id": "b7f3e9a4-2cf6-4f80-90dd-000000000017",
+      "name": "Send Daily Telegram Digest",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        890,
+        340
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{ $('Digest Configuration').first().json.telegramChatId }}",
+        "text": "={{ $json.telegramText }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "None",
+          "disable_notification": false
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Daily 9 PM": {
+      "main": [
+        [
+          {
+            "node": "Digest Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Digest Configuration": {
+      "main": [
+        [
+          {
+            "node": "Read Jobs for Daily Digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Jobs for Daily Digest": {
+      "main": [
+        [
+          {
+            "node": "Build Daily Email",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Build Daily Telegram Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Daily Email": {
+      "main": [
+        [
+          {
+            "node": "Send Daily Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Daily Telegram Messages": {
+      "main": [
+        [
+          {
+            "node": "Send Daily Telegram Digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

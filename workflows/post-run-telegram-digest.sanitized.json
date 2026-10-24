@@ -1,0 +1,143 @@
+{
+  "name": "Job Discovery — Post-Run Telegram Digest (public template)",
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Los_Angeles"
+  },
+  "nodes": [
+    {
+      "id": "b7f3e9a4-2cf6-4f80-90dd-000000000021",
+      "name": "When Called After Discovery",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        100
+      ],
+      "parameters": {
+        "inputSource": "passthrough"
+      }
+    },
+    {
+      "id": "b7f3e9a4-2cf6-4f80-90dd-000000000022",
+      "name": "Digest Configuration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        220,
+        100
+      ],
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"dashboardUrl\": \"https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec\",\n  \"telegramChatId\": \"YOUR_TELEGRAM_CHAT_ID\",\n  \"emailRecipient\": \"YOUR_EMAIL_ADDRESS\"\n}",
+        "options": {}
+      }
+    },
+    {
+      "id": "b7f3e9a4-2cf6-4f80-90dd-000000000023",
+      "name": "Read Jobs for Run Digest",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        440,
+        100
+      ],
+      "alwaysOutputData": true,
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "YOUR_GOOGLE_SPREADSHEET_ID"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "id",
+          "value": "0"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "b7f3e9a4-2cf6-4f80-90dd-000000000024",
+      "name": "Build Telegram Run Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        100
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\nconst rows=$input.all().map(item=>item.json);\nconst config=$('Digest Configuration').first().json;\nconst zone='America/Los_Angeles';\nconst ymd=d=>new Intl.DateTimeFormat('en-CA',{timeZone:zone,year:'numeric',month:'2-digit',day:'2-digit'}).format(d);\nconst today=ymd(new Date());\nconst dateValue=v=>{const d=new Date(v);return Number.isNaN(d.getTime())?null:d;};\nconst filtered=rows.filter(j=>{const d=dateValue(j['First Seen At']);return d&&ymd(d)===today&&String(j.Link||'').trim()});\nconst esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#39;');\nconst getUrl=j=>String(config.dashboardUrl||'').replace(/\\/$/,'')+'?job='+encodeURIComponent(String(j.Link).trim());\nconst cleanText=s=>String(s??'').replace(/<[^>]*>/g,' ').replace(/\\s+/g,' ').trim();\nconst description=s=>{const v=cleanText(s);return v.length>170?v.slice(0,167)+'…':v};\nconst score=j=>{const n=Number(String(j.Rating??'').trim());return Number.isFinite(n)?n:null;};\nconst sorted=filtered.sort((a,b)=>(score(b)??-1)-(score(a)??-1));\nconst isHigh=j=>score(j)>85;\nconst countHigh=sorted.filter(isHigh).length;\n\nconst runId=String($('When Called After Discovery').first().json.runId||'');\nif(!runId)throw new Error('Missing runId from parent discovery workflow');\nconst matches=sorted.filter(j=>String(j['First Seen Run ID']||'')===runId);\nconst header='📋 Indeed discovery run finished ('+today+')\\nNew jobs: '+matches.length+'\\n\\n';\nconst chunks=[];\nlet current=header;\nfor(const j of matches){\n const entry=String(j.Title||'Untitled job')+'\\n'+String(j['Company Name']||'Unknown company')+' | '+String(j.Type||'Not specified')+'\\nRating: '+(score(j)??'Pending')+'/100\\n'+description(j['Job Description'])+'\\nDashboard: '+getUrl(j)+'\\n\\n';\n if(current.length+entry.length>3400&&current!==header){chunks.push(current);current='📋 Discovery run (continued)\\n\\n'}\n current+=entry;\n}\nif(!matches.length)current+='No new jobs discovered in this run.';\nchunks.push(current);\nreturn chunks.map((telegramText,i)=>({json:{telegramText,chunk:i+1,totalChunks:chunks.length,runId,newJobs:matches.length}}));\n"
+      }
+    },
+    {
+      "id": "b7f3e9a4-2cf6-4f80-90dd-000000000025",
+      "name": "Send Telegram Run Summary",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        880,
+        100
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{ $('Digest Configuration').first().json.telegramChatId }}",
+        "text": "={{ $json.telegramText }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "None",
+          "disable_notification": false
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When Called After Discovery": {
+      "main": [
+        [
+          {
+            "node": "Digest Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Digest Configuration": {
+      "main": [
+        [
+          {
+            "node": "Read Jobs for Run Digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Jobs for Run Digest": {
+      "main": [
+        [
+          {
+            "node": "Build Telegram Run Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Telegram Run Summary": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram Run Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

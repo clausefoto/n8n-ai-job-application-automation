@@ -1,6 +1,6 @@
 # Architecture and node reference
 
-The current project has **one n8n workflow with two independent branches and 23 nodes**. Both branches share the Google Sheets job database. This page documents the latest provided n8n export (October 2026).
+The current project has **one n8n workflow with two independent branches and 27 nodes**. Both branches share the Google Sheets job database. This page documents the latest provided n8n export (October 2026).
 
 ![Actual 23-node n8n workflow shown in the editor on October 23, 2026](images/n8n-workflow-screenshot-oct-2026.webp)
 
@@ -45,3 +45,7 @@ The published [prompt library](../prompts/README.md) uses generalized prompts an
 - **Candidate accuracy:** AI output must be grounded in a verified profile, and résumé/cover-letter JSON must be checked before use.
 - **Profile format:** The current résumé templates and Code nodes still have role- and placeholder-specific expectations; replacing the fictional profile alone does not make this a general résumé product.
 - **Privacy:** Never commit actual career profiles, OAuth credentials, resource IDs, or execution/pinned data.
+
+## Optional discovery and daily notification workflows
+
+The parent flow also has a first-seen tracking step before the Google Sheets upsert. After discovery and scoring, the optional child `post-run-telegram-digest.sanitized.json` can read that run's newly discovered jobs and summarize them to Telegram. A separate `daily-9pm-email-and-telegram-digest.sanitized.json` runs at 9 PM Pacific and delivers an email HTML table plus Telegram digest. Both read the Sheet's `First Seen At` and `First Seen Run ID` metadata instead of treating the advertised job-posting date as collection time. See [setup](job-digests.md).
