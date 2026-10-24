@@ -8,9 +8,9 @@ Built with **n8n, Docker / Unraid, Apify, JavaScript, OpenAI, and Google Sheets 
 
 ## Updated n8n workflow
 
-The latest sanitized 35-node workflow adds high-rated-job Telegram notifications, a post-run digest, nightly email reporting, and a direct link into the dashboard. The screenshot below shows an earlier workflow revision; the latest 35-node screenshot is pending upload.
+The latest sanitized 35-node workflow adds high-rated-job Telegram notifications, a post-run digest, nightly email reporting, and a direct link into the dashboard. The screenshot below shows the updated workflow with Telegram notifications and nightly email reporting.
 
-![Earlier n8n workflow screenshot showing eligibility filtering, job scoring, and application document generation](docs/images/n8n-workflow-screenshot-oct-2026.webp)
+![Updated n8n workflow with scheduled discovery, job scoring, Telegram notifications and email digest](docs/images/Screenshot%202026-10-24%20122609.png)
 
 
 ## Where it started
