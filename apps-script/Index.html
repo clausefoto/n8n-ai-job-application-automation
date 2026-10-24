@@ -9,6 +9,81 @@
 @media(max-width:560px){main{padding:17px 12px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.stat{padding:12px}.stat-num{font-size:22px}.filters{flex-wrap:wrap}.search{flex-basis:100%}.filters select{flex:1;max-width:none}.profile span{display:none}.insights-grid{grid-template-columns:1fr}.donut-wrap{grid-template-columns:120px 1fr}.donut{width:115px;height:115px}.donut:after{inset:22px}.page-title{font-size:15px}}
 .reason-overview-columns{display:grid;grid-template-columns:repeat(auto-fit,minmax(205px,1fr));gap:11px;align-items:start}.reason-overview-column{background:#f7f7fc;border:1px solid #eceaf6;border-radius:12px;padding:11px;min-width:0}.reason-overview-column-head{display:flex;align-items:center;justify-content:space-between;margin:1px 2px 9px;color:#51447f;font-size:11px;font-weight:800}.reason-overview-column .held-jobs{max-height:calc(100vh - 300px);overflow:auto;padding:1px}.reason-overview-column .board-card{padding:11px}.reason-overview-column .board-title{font-size:10px}.reason-overview-column .board-company{font-size:9px}.reason-overview-column .empty{padding:16px 5px;font-size:9px}@media(max-width:700px){.reason-overview-columns{grid-template-columns:repeat(2,minmax(0,1fr))}.reason-overview-column .held-jobs{max-height:480px}}@media(max-width:480px){.reason-overview-columns{grid-template-columns:1fr}}
 </style>
+
+/* MOBILE-ONLY RESPONSIVE LAYOUT — consolidated, desktop unchanged */
+<style>
+@media (max-width:560px) {
+  html,body { width:100%;max-width:100%;overflow-x:clip; }
+  .shell,main,.page,.workspace,.panel,.card { min-width:0;max-width:100%; }
+  main { width:100%;padding:14px 10px 30px; }
+  .sidebar { padding:14px 12px;gap:12px; }
+  .sidebar .nav { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;width:100%;overflow:visible; }
+  .sidebar .nav button { display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:100%;min-width:0;min-height:60px;padding:8px 3px;border-radius:10px;text-align:center;white-space:normal;font-size:10px;line-height:1.2; }
+  .sidebar .nav .ico { width:auto;font-size:18px; }
+  .sidebar .nav button.active { background:#6552a3;box-shadow:none;color:#fff; }
+  .sidebar .nav-count { display:none; }
+  .heading,.page-intro { flex-wrap:wrap;gap:10px; }
+  .job,.job-title,.detail-title,.score-copy,.document-row,.file-link-row,.top-job,.at-mobile-card { min-width:0;overflow-wrap:anywhere; }
+  .filters { width:100%;flex-wrap:wrap; }
+  .filters select { min-width:0;max-width:100%; }
+  .file-link-row,.document-file .file-link-row { grid-template-columns:minmax(0,1fr);gap:6px; }
+  .documents-files,.document-row { grid-template-columns:minmax(0,1fr); }
+  .not-interested-columns,.reason-overview-columns { grid-template-columns:minmax(0,1fr); }
+  .insights-grid { grid-template-columns:minmax(0,1fr); }
+  .donut-wrap { grid-template-columns:minmax(0,120px) minmax(0,1fr); }
+  /* Overview: two-up statistics and width-safe saved-job cards */
+  #page-overview .at-stats { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;gap:10px; }
+  #page-overview .at-stat { min-width:0;min-height:105px;padding:12px;gap:8px;flex-direction:column;align-items:flex-start; }
+  #page-overview .at-stat > * { min-width:0; }
+  #page-overview .at-stat-icon { width:32px;height:32px;font-size:16px;flex:none; }
+  #page-overview .at-stat-title { font-size:11px;overflow-wrap:anywhere; }
+  #page-overview .at-stat-value { font-size:26px;line-height:1.15; }
+  #page-overview .at-stat-desc { font-size:10px;line-height:1.35; }
+  #page-overview .at-mobile-cards,#page-overview .at-mobile-card { min-width:0;width:100%; }
+  #page-overview .at-mobile-header,#page-overview .at-mobile-footer { flex-wrap:wrap; }
+  #page-overview .at-table-card,#page-overview .at-controls { min-width:0;max-width:100%; }
+  /* Pipeline: one stage per row and no sideways overflow */
+  #page-pipeline .board { display:grid;grid-template-columns:minmax(0,1fr);gap:12px;width:100%;max-width:100%;overflow-x:visible; }
+  #page-pipeline .lane { width:100%;min-width:0;max-width:100%; }
+  #page-pipeline .board-card { display:block;width:100%;min-width:0;max-width:100%;padding:14px;margin-bottom:8px;overflow-wrap:anywhere; }
+  #page-pipeline .board-title { font-size:13px;line-height:1.4; }
+  #page-pipeline .board-company { font-size:11px;line-height:1.4; }
+  #page-pipeline .board-meta { flex-wrap:wrap;gap:8px;font-size:11px; }
+  #page-pipeline .board-open { font-size:11px; }
+  #page-pipeline .not-interested-columns,#page-pipeline .held-jobs { min-width:0;max-width:100%; }
+  /* All Jobs: list OR detail, never stacked/two-pane on phones */
+  #page-all-jobs #jobs-workspace { display:block;width:100%;max-width:100%;height:auto;min-height:0; }
+  #page-all-jobs .column-resizer { display:none; }
+  #page-all-jobs .job-panel,#page-all-jobs #detail { width:100%;min-width:0;max-width:100%;height:auto; }
+  #page-all-jobs .job-list { width:100%;max-width:100%;min-height:0;max-height:none;overflow:visible; }
+  #page-all-jobs .job { width:100%;min-width:0;max-width:100%;padding:15px; }
+  #page-all-jobs:not(.mobile-show-detail) .job-panel { display:flex;flex-direction:column; }
+  #page-all-jobs:not(.mobile-show-detail) #detail { display:none; }
+  #page-all-jobs.mobile-show-detail .job-panel { display:none; }
+  #page-all-jobs.mobile-show-detail #detail { display:block;height:auto;overflow:visible;overflow-wrap:anywhere; }
+  #page-all-jobs.mobile-show-detail .page-intro { display:none; }
+  /* Job details: a single continuous page, no nested text scroll areas. */
+  #page-all-jobs.mobile-show-detail #detail .score-copy,
+  #page-all-jobs.mobile-show-detail #detail .job-description-copy {
+    max-height:none;
+    height:auto;
+    overflow:visible;
+    overscroll-behavior:auto;
+  }
+  #page-all-jobs.mobile-show-detail #detail .detail-section,
+  #page-all-jobs.mobile-show-detail #detail .detail-head {
+    height:auto;
+    max-height:none;
+    overflow:visible;
+  }
+
+  #page-all-jobs #detail .detail-actions { display:flex;flex-wrap:wrap;gap:8px; }
+  #page-all-jobs #detail .detail-actions > * { max-width:100%;min-height:44px; }
+  #page-all-jobs #detail button,#page-all-jobs #detail select { min-height:44px; }
+  #mobile-back-to-jobs { display:none; }
+  #page-all-jobs.mobile-show-detail #mobile-back-to-jobs { display:block;width:100%;min-height:46px;margin:0 0 12px;padding:12px 16px;border:1px solid #ded8fa;border-radius:10px;background:#eee9ff;color:#6046c9;font-weight:700;text-align:left; }
+}
+</style>
 </head>
 <body>
 <div class="shell">
@@ -36,7 +111,7 @@
 
     <section class="page" id="page-pipeline"><div class="page-intro"><div><div class="page-kicker">Move good opportunities forward</div><h2 class="page-title">Application pipeline</h2></div><button class="small-action" data-goto="all-jobs">Open all jobs →</button></div><div class="board" id="pipeline-board"></div><section class="card pipeline-hold"><div class="card-head"><div><div class="card-title">Not interested</div><div class="card-sub">Choose a reason to see why these jobs were set aside</div></div><span class="badge" id="pipeline-not-interested-count">0</span></div><div class="not-interested-columns"><div class="interest-category"><div class="interest-category-head">Not relevant <span class="lane-count" id="pipeline-not-relevant-count">0</span></div><div class="held-jobs" id="pipeline-not-relevant-list"></div></div><div class="interest-category"><div class="interest-category-head">Not qualified <span class="lane-count" id="pipeline-not-qualified-count">0</span></div><div class="held-jobs" id="pipeline-not-qualified-list"></div></div><div class="interest-category"><div class="interest-category-head">Military <span class="lane-count" id="pipeline-military-count">0</span></div><div class="held-jobs" id="pipeline-military-list"></div></div><div class="interest-category"><div class="interest-category-head">Not remote <span class="lane-count" id="pipeline-not-remote-count">0</span></div><div class="held-jobs" id="pipeline-not-remote-list"></div></div></div><div id="pipeline-uncategorized-wrap" class="uncategorized" hidden><div class="uncategorized-title">Needs a reason · legacy entries</div><div class="held-jobs" id="pipeline-uncategorized-list"></div></div></section></section>
 
-    <section class="page" id="page-all-jobs"><div class="page-intro"><div><div class="page-kicker">Explore and update your list</div><h2 class="page-title">All jobs <span class="card-sub" id="all-jobs-total"></span></h2></div><select class="small-action" id="sort-select" aria-label="Sort jobs"><option value="rating-desc">Rating ↓</option><option value="rating-asc">Rating ↑</option><option value="age-newest">Age: newest</option><option value="age-oldest">Age: oldest</option><option value="salary-high">Salary: high to low</option><option value="salary-low">Salary: low to high</option></select></div><section class="workspace" id="jobs-workspace"><div class="panel job-panel"><div class="panel-head"><div><div class="panel-title">Saved opportunities</div><div class="panel-caption">Sorted by scraper fit score</div></div></div><div class="filters"><div class="search"><span>⌕</span><input id="search" type="search" placeholder="Search title or company…"></div><select id="stage-filter"><option value="">All stages</option></select><select id="interest-filter"><option value="">All interest</option><option value="awaiting-review">Awaiting review</option><option value="interested">Interested</option><option value="not-interested">All not interested</option><option value="Not relevant">Not relevant</option><option value="Not qualified">Not qualified</option><option value="Military">Military</option><option value="Not remote">Not remote</option><option value="needs-reason">Needs a reason</option></select><select id="remote-filter"><option value="">Any location</option><option value="Remote">Remote</option><option value="Hybrid">Hybrid</option><option value="On-site">On-site</option></select></div><div class="job-list" id="job-list"><div class="empty">Loading jobs from Google Sheets…</div></div></div><div class="column-resizer" id="column-resizer" role="separator" aria-orientation="vertical" aria-label="Resize job list and job details" aria-valuemin="0" aria-valuemax="100" aria-valuenow="58" tabindex="0"><span></span></div><div class="panel" id="detail"><div class="empty">Select a job to see its details.</div></div></section><div class="footnote">Updates save directly to your connected Sheet.</div></section>
+    <section class="page" id="page-all-jobs"><div class="page-intro"><div><div class="page-kicker">Explore and update your list</div><h2 class="page-title">All jobs <span class="card-sub" id="all-jobs-total"></span></h2></div><select class="small-action" id="sort-select" aria-label="Sort jobs"><option value="rating-desc">Rating ↓</option><option value="rating-asc">Rating ↑</option><option value="age-newest">Age: newest</option><option value="age-oldest">Age: oldest</option><option value="salary-high">Salary: high to low</option><option value="salary-low">Salary: low to high</option></select></div><button id="mobile-back-to-jobs" type="button">← Back to Jobs</button><section class="workspace" id="jobs-workspace"><div class="panel job-panel"><div class="panel-head"><div><div class="panel-title">Saved opportunities</div><div class="panel-caption">Sorted by scraper fit score</div></div></div><div class="filters"><div class="search"><span>⌕</span><input id="search" type="search" placeholder="Search title or company…"></div><select id="stage-filter"><option value="">All stages</option></select><select id="interest-filter"><option value="">All interest</option><option value="awaiting-review">Awaiting review</option><option value="interested">Interested</option><option value="not-interested">All not interested</option><option value="Not relevant">Not relevant</option><option value="Not qualified">Not qualified</option><option value="Military">Military</option><option value="Not remote">Not remote</option><option value="needs-reason">Needs a reason</option></select><select id="remote-filter"><option value="">Any location</option><option value="Remote">Remote</option><option value="Hybrid">Hybrid</option><option value="On-site">On-site</option></select></div><div class="job-list" id="job-list"><div class="empty">Loading jobs from Google Sheets…</div></div></div><div class="column-resizer" id="column-resizer" role="separator" aria-orientation="vertical" aria-label="Resize job list and job details" aria-valuemin="0" aria-valuemax="100" aria-valuenow="58" tabindex="0"><span></span></div><div class="panel" id="detail"><div class="empty">Select a job to see its details.</div></div></section><div class="footnote">Updates save directly to your connected Sheet.</div></section>
 
     <section class="page" id="page-not-interested"><div class="page-intro"><div><div class="page-kicker">A quick review of set-aside roles</div><h2 class="page-title">Not interested</h2></div><span class="badge" id="not-interested-total">0 JOBS</span></div><div class="stats" id="not-interested-summary"></div><div class="reason-overview-columns" id="not-interested-page-columns"></div></section>
 
@@ -71,7 +146,25 @@ function salaryValue(j){const text=String(j.salary||'').toLowerCase(),match=text
 function sortJobs(rows){return rows.sort((a,b)=>{if(sortMode==='rating-desc')return b.rating-a.rating;if(sortMode==='rating-asc')return a.rating-b.rating;if(sortMode==='age-newest')return ageValue(a)-ageValue(b);if(sortMode==='age-oldest')return ageValue(b)-ageValue(a);if(sortMode==='salary-high'||sortMode==='salary-low'){const av=salaryValue(a),bv=salaryValue(b);if(!Number.isFinite(av))return Number.isFinite(bv)?1:0;if(!Number.isFinite(bv))return -1;return sortMode==='salary-high'?bv-av:av-bv;}return 0})}
 function visibleJobs(){const q=$('search').value.trim().toLowerCase(),stage=$('stage-filter').value,interest=$('interest-filter').value,remote=$('remote-filter').value;const expectedInterest=({'awaiting-review':'Awaiting review','interested':'Interested'}[interest]||interest);return sortJobs(jobs.filter(j=>(!q||(j.title+' '+j.company+' '+j.platform).toLowerCase().includes(q))&&(!stage||j.stage===stage)&&(!remote||j.remote===remote)&&(!interest||(interest==='not-interested'?isNotInterested(j):interest==='needs-reason'?interestOf(j)==='Not interested':String(interestOf(j)||'').trim().toLowerCase()===String(expectedInterest||'').trim().toLowerCase()))))}
 function renderList(){const rows=visibleJobs();$('all-jobs-total').textContent=`· ${rows.length}`;$('nav-count').textContent=jobs.length;$('job-list').innerHTML=rows.length?rows.map(j=>`<article class="job ${j.id===selectedId?'selected':''}" data-id="${j.id}"><div class="job-top"><div><div class="job-title">${escapeHtml(j.title)}</div><div class="company company-line">${companyLogo(j)}<span>${escapeHtml(j.company)} <span style="color:#bdc4be">·</span> ${escapeHtml(j.platform)}</span></div></div><span class="rating">★ ${j.rating}/10</span></div><div class="job-desc">${escapeHtml(j.description)}</div><div class="job-meta"><span class="pill ${stageClass(j.stage)}">${escapeHtml(j.stage)}</span><span class="pill ${interestClass(interestOf(j))}">${escapeHtml(interestOf(j))}</span>${String(j.coverLetter||'').trim()?'<span class="pill cover-ready">✉ Cover letter ready</span>':''}<span>${escapeHtml(j.remote)}</span><span>${escapeHtml(j.salary)}</span><span>${escapeHtml(j.age)}</span>${j.expired?'<span class="pill rose">Expired</span>':''}</div></article>`).join(''):'<div class="empty">No jobs match these filters.</div>';bindLogoFallbacks();document.querySelectorAll('.job').forEach(el=>el.addEventListener('click',()=>selectJob(Number(el.dataset.id))));updateStats()}
-function selectJob(id){selectedId=id;renderList();renderDetail()}
+// Show mobile details only on an explicit selection (not on initial data load).
+let mobileJobListScrollY=0;
+function mobileJobMode(){return window.matchMedia('(max-width:560px)').matches}
+function showMobileJobList(){
+  const page=$('page-all-jobs');
+  page.classList.remove('mobile-show-detail');
+  if(mobileJobMode())requestAnimationFrame(()=>window.scrollTo(0,mobileJobListScrollY));
+}
+function selectJob(id){
+  selectedId=id;
+  renderList();
+  renderDetail();
+  if(mobileJobMode()&&$('page-all-jobs').classList.contains('active')){
+    const page=$('page-all-jobs');
+    if(!page.classList.contains('mobile-show-detail'))mobileJobListScrollY=window.scrollY;
+    page.classList.add('mobile-show-detail');
+    window.scrollTo(0,0);
+  }
+}
 function renderNotInterestedPage(){const reasons=[['Not relevant','not-relevant'],['Not qualified','not-qualified'],['Military','military'],['Not remote','not-remote'],['Needs a reason','needs-reason']];const total=jobs.filter(isNotInterested).length;$('not-interested-total').textContent=total+' JOBS';$('nav-not-interested-count').textContent=total;$('not-interested-summary').innerHTML=[{label:'Set aside',count:total},...reasons.map(([label,key])=>({label:label==='Needs a reason'?'Needs reason':label,count:jobs.filter(j=>key==='needs-reason'?interestOf(j)==='Not interested':interestOf(j)===label).length}))].map(x=>'<article class="stat"><div class="stat-top">'+escapeHtml(x.label)+'</div><div class="stat-num">'+x.count+'</div><div class="stat-note">Jobs</div></article>').join('');const card=j=>'<button class="board-card" type="button" data-reason-job="'+j.id+'"><div class="board-title">'+escapeHtml(j.title||'Untitled job')+'</div><div class="board-company">'+escapeHtml(j.company||'Unknown company')+'</div><div class="board-meta"><span>'+escapeHtml(j.age||j.date||'')+'</span><b class="score">★ '+escapeHtml(j.rating||0)+'</b></div></button>';$('not-interested-page-columns').innerHTML=reasons.map(([label,key])=>{const rows=jobs.filter(j=>key==='needs-reason'?interestOf(j)==='Not interested':interestOf(j)===label);return '<section class="reason-overview-column"><div class="reason-overview-column-head">'+escapeHtml(label)+' <span class="lane-count">'+rows.length+'</span></div><div class="held-jobs">'+(rows.length?rows.map(card).join(''):'<div class="empty">No jobs here yet</div>')+'</div></section>'}).join('');document.querySelectorAll('[data-reason-job]').forEach(el=>el.addEventListener('click',()=>{const job=jobs.find(j=>j.id===Number(el.dataset.reasonJob));goToPage('all-jobs');$('interest-filter').value=job&&interestOf(job)==='Not interested'?'needs-reason':interestOf(job);renderList();selectJob(Number(el.dataset.reasonJob))}))}
 function updateStats(){const active=jobs.filter(j=>!j.expired),avg=active.length?(active.reduce((a,j)=>a+j.rating,0)/active.length).toFixed(1):'—';$('stat-total').textContent=jobs.length;$('stat-ready').textContent=jobs.filter(j=>j.stage==='Ready to apply').length;$('stat-progress').textContent=jobs.filter(j=>['Applied','Interviewing'].includes(j.stage)).length;$('stat-rating').textContent=avg;$('stat-awaiting').textContent=jobs.filter(j=>interestOf(j)==='Awaiting review').length;$('stat-not-interested').textContent=jobs.filter(isNotInterested).length;$('insight-not-interested').textContent=jobs.filter(isNotInterested).length;$('avg-badge').textContent=avg+' AVG';$('insight-rated').textContent=jobs.filter(j=>Number.isFinite(j.rating)&&j.rating>0).length;$('insight-queued').textContent=jobs.filter(j=>j.makeCover).length;const remote=jobs.filter(j=>j.remote==='Remote').length,remotePercent=jobs.length?Math.round(remote/jobs.length*100):0;$('insight-remote').textContent=remotePercent+'%';renderCharts();renderPipeline();renderTopJobs();renderDocuments();renderNotInterestedPage()}
 function renderBars(containerId,items,colors){const max=Math.max(1,...items.map(x=>x.count));$(containerId).innerHTML=items.map((x,i)=>`<div class="chart-bar-col" title="${escapeHtml(x.label)}: ${x.count}"><span class="chart-bar-count">${x.count}</span><div class="chart-bar-track"><div class="chart-bar" style="height:${Math.max(4,x.count/max*100)}%;${colors&&colors[i]?`background:${colors[i]}`:''}"></div></div><span class="chart-bar-label">${escapeHtml(x.short||x.label)}</span></div>`).join('')}
@@ -94,7 +187,8 @@ let pendingSheetWrites=0;function saveToSheet(job,field,value,onError){pendingSh
 let toastTimer;function showToast(message){const t=$('toast');t.textContent=message;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2200)}
 (function setupColumnResizer(){const workspace=$('jobs-workspace'),handle=$('column-resizer'),left=workspace?.querySelector('.job-panel');if(!workspace||!handle||!left)return;const minLeft=260,minRight=300,gutter=12;let dragging=false,startX=0,startWidth=0;function setWidth(px){const max=Math.max(minLeft,workspace.clientWidth-minRight-gutter),width=Math.max(minLeft,Math.min(max,px));workspace.style.setProperty('--left-col',width+'px');handle.setAttribute('aria-valuenow',String(Math.round(width/Math.max(1,workspace.clientWidth)*100)))}function begin(x){if(matchMedia('(max-width:820px)').matches)return;startX=x;startWidth=left.getBoundingClientRect().width;dragging=true;handle.classList.add('dragging');document.body.style.userSelect='none'}function move(x){if(dragging)setWidth(startWidth+x-startX)}function end(){dragging=false;handle.classList.remove('dragging');document.body.style.userSelect=''}handle.addEventListener('pointerdown',event=>{begin(event.clientX);if(dragging&&handle.setPointerCapture)handle.setPointerCapture(event.pointerId);event.preventDefault()});handle.addEventListener('pointermove',event=>move(event.clientX));handle.addEventListener('pointerup',end);handle.addEventListener('pointercancel',end);handle.addEventListener('mousedown',event=>{begin(event.clientX);event.preventDefault()});window.addEventListener('mousemove',event=>move(event.clientX));window.addEventListener('mouseup',end);handle.addEventListener('keydown',event=>{if(event.key!=='ArrowLeft'&&event.key!=='ArrowRight')return;event.preventDefault();setWidth(left.getBoundingClientRect().width+(event.key==='ArrowRight'?24:-24))})})();
 function renderDocuments(){const rows=jobs.filter(j=>String(j.resumeLink||'').trim()||String(j.coverLetter||'').trim());$('documents-count').textContent=`${rows.length} JOBS`;$('documents-list').innerHTML=rows.length?rows.map(j=>{const resume=safeFileUrl(j.resumeLink),cover=safeFileUrl(j.coverLetter);return `<div class="document-row"><div class="document-title">${escapeHtml(j.title)}</div><div class="document-company">${escapeHtml(j.company)}</div><div class="document-file-cell">${resume?`<a class="document-link" href="${escapeHtml(resume)}" target="_blank" rel="noopener noreferrer">Resume ↗</a>`:'—'}</div><div class="document-file-cell">${cover?`<a class="document-link" href="${escapeHtml(cover)}" target="_blank" rel="noopener noreferrer">Cover Letter ↗</a>`:'—'}</div></div>`}).join(''):'<div class="empty">No resumes or cover letters have been generated yet.</div>'}
-function goToPage(page){document.querySelectorAll('.page').forEach(el=>el.classList.toggle('active',el.id===`page-${page}`));document.querySelectorAll('[data-page]').forEach(el=>el.classList.toggle('active',el.dataset.page===page));const info=pageInfo[page];$('breadcrumb').textContent=info.label;$('page-heading').textContent=info.title;$('page-subhead').textContent=info.sub;if(page==='all-jobs'){renderList();renderDetail()}if(page==='pipeline')renderPipeline();if(page==='not-interested')renderNotInterestedPage();if(page==='documents')renderDocuments();if(page==='documents')renderDocuments();if(page==='documents')renderDocuments()}
+function goToPage(page){if(page==='all-jobs'){$('page-all-jobs').classList.remove('mobile-show-detail');mobileJobListScrollY=0;}document.querySelectorAll('.page').forEach(el=>el.classList.toggle('active',el.id===`page-${page}`));document.querySelectorAll('[data-page]').forEach(el=>el.classList.toggle('active',el.dataset.page===page));const info=pageInfo[page];$('breadcrumb').textContent=info.label;$('page-heading').textContent=info.title;$('page-subhead').textContent=info.sub;if(page==='all-jobs'){renderList();renderDetail()}if(page==='pipeline')renderPipeline();if(page==='not-interested')renderNotInterestedPage();if(page==='documents')renderDocuments();if(page==='documents')renderDocuments();if(page==='documents')renderDocuments()}
+$('mobile-back-to-jobs').addEventListener('click',showMobileJobList);
 document.querySelectorAll('[data-page]').forEach(el=>el.addEventListener('click',()=>goToPage(el.dataset.page)));document.querySelectorAll('[data-goto]').forEach(el=>el.addEventListener('click',()=>goToPage(el.dataset.goto)));
 populateStages();$('search').addEventListener('input',renderList);$('stage-filter').addEventListener('change',renderList);$('interest-filter').addEventListener('change',renderList);$('remote-filter').addEventListener('change',renderList);$('sort-select').addEventListener('change',e=>{sortMode=e.target.value;renderList()});$('job-list').innerHTML='<div class="empty">Loading jobs from Google Sheets…</div>';
 google.script.run.withSuccessHandler(data=>{
@@ -109,9 +203,12 @@ google.script.run.withSuccessHandler(data=>{
   // Example: https://script.google.com/macros/s/DEPLOYMENT_ID/exec?job=<encoded Sheet Link>
   // Use the immutable job-link key, not the Sheet row number, which can change.
   google.script.url.getLocation(location=>{
+
     const requestedLink=String(location?.parameter?.job||'').trim();
     if(!requestedLink)return;
     const targetJob=jobs.find(j=>String(j.link||'').trim()===requestedLink);
+
+
     if(!targetJob){
       showToast('That job is not in the dashboard');
       return;
