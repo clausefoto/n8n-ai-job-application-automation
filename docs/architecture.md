@@ -33,7 +33,7 @@ Code nodes validate the review output, build separate résumé and cover-letter 
 
 ## Differences between public and private copies
 
-The public [workflow export](../workflows/indeed-job-discovery-and-application-generator.sanitized.json) is a **23-node sanitized demonstration** with fictional career data, placeholder resource identifiers, no credentials or pinned data, and **both schedule triggers disabled**. It is not a working copy of the author's private automation.
+The public [workflow export](../workflows/indeed-job-discovery-and-application-generator.sanitized.json) is a **27-node sanitized demonstration** with fictional career data, placeholder resource identifiers, no credentials or pinned data, and **both schedule triggers disabled**. It is not a working copy of the author's private automation.
 
 The published [prompt library](../prompts/README.md) uses generalized prompts and privacy-safe examples. The private workflow and the public example may differ in profile content and exact wording.
 
