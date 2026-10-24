@@ -97,7 +97,37 @@ function renderDocuments(){const rows=jobs.filter(j=>String(j.resumeLink||'').tr
 function goToPage(page){document.querySelectorAll('.page').forEach(el=>el.classList.toggle('active',el.id===`page-${page}`));document.querySelectorAll('[data-page]').forEach(el=>el.classList.toggle('active',el.dataset.page===page));const info=pageInfo[page];$('breadcrumb').textContent=info.label;$('page-heading').textContent=info.title;$('page-subhead').textContent=info.sub;if(page==='all-jobs'){renderList();renderDetail()}if(page==='pipeline')renderPipeline();if(page==='not-interested')renderNotInterestedPage();if(page==='documents')renderDocuments();if(page==='documents')renderDocuments();if(page==='documents')renderDocuments()}
 document.querySelectorAll('[data-page]').forEach(el=>el.addEventListener('click',()=>goToPage(el.dataset.page)));document.querySelectorAll('[data-goto]').forEach(el=>el.addEventListener('click',()=>goToPage(el.dataset.goto)));
 populateStages();$('search').addEventListener('input',renderList);$('stage-filter').addEventListener('change',renderList);$('interest-filter').addEventListener('change',renderList);$('remote-filter').addEventListener('change',renderList);$('sort-select').addEventListener('change',e=>{sortMode=e.target.value;renderList()});$('job-list').innerHTML='<div class="empty">Loading jobs from Google Sheets…</div>';
-google.script.run.withSuccessHandler(data=>{jobs=(data||[]).map(j=>({...j,stage:normalizeStage(j.stage),company:j.company||'Unknown company',rating:Number(j.rating)||0}));selectedId=jobs.length?jobs[0].id:null;renderList();renderDetail();updateStats();$('insight-rated').textContent=jobs.filter(j=>j.rating>0).length}).withFailureHandler(error=>{$('job-list').innerHTML='<div class="empty">Could not load jobs: '+escapeHtml(error&&error.message?error.message:'Unknown error')+'</div>';showToast('Could not load the Sheet')}).getJobs();
+google.script.run.withSuccessHandler(data=>{
+  jobs=(data||[]).map(j=>({...j,stage:normalizeStage(j.stage),company:j.company||'Unknown company',rating:Number(j.rating)||0}));
+  selectedId=jobs.length?jobs[0].id:null;
+  renderList();
+  renderDetail();
+  updateStats();
+  $('insight-rated').textContent=jobs.filter(j=>j.rating>0).length;
+
+  // Open a specific existing job from an email/Telegram alert URL.
+  // Example: https://script.google.com/macros/s/DEPLOYMENT_ID/exec?job=<encoded Sheet Link>
+  // Use the immutable job-link key, not the Sheet row number, which can change.
+  google.script.url.getLocation(location=>{
+    const requestedLink=String(location?.parameter?.job||'').trim();
+    if(!requestedLink)return;
+    const targetJob=jobs.find(j=>String(j.link||'').trim()===requestedLink);
+    if(!targetJob){
+      showToast('That job is not in the dashboard');
+      return;
+    }
+    // Clear filters so the matching card remains visible and highlighted.
+    $('search').value='';
+    $('stage-filter').value='';
+    $('interest-filter').value='';
+    $('remote-filter').value='';
+    goToPage('all-jobs');
+    selectJob(targetJob.id);
+  });
+}).withFailureHandler(error=>{
+  $('job-list').innerHTML='<div class="empty">Could not load jobs: '+escapeHtml(error&&error.message?error.message:'Unknown error')+'</div>';
+  showToast('Could not load the Sheet');
+}).getJobs();
 </script>
 
 
