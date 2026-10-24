@@ -12,12 +12,12 @@ All workflows are **inactive public examples**. No private credentials, Sheet ID
 
 Add **two new columns** to your existing Google Sheets job database, spelling and capitalization exactly:
 
-- `First Seen At`: ISO-8601 UTC timestamp saved the *first time* a job with a given `Link` is inserted.
+- `First Seen At`: Pacific calendar date in `YYYY-MM-DD` format saved the *first time* a job with a given `Link` is inserted.
 - `First Seen Run ID`: n8n execution ID for the run that originally discovered that job.
 
-The original `Date` column is the job board's **publication date**, not the date n8n found it. The new timestamp is what the 9 PM summary uses. **Existing rows** will be left with empty first-seen values until you choose to backfill them. This is intentional to avoid incorrectly counting all historic rows as new jobs.
+The original `Date` column is the job board's **publication date**, not the date n8n found it. The new date is what the 9 PM summary uses. Format the column as **Plain text** to avoid Sheets date coercion. **Existing rows** will be left with empty first-seen values until you choose to backfill them. This is intentional to avoid incorrectly counting all historic rows as new jobs.
 
-The first-seen guard runs **before** `Send to Google Sheets`: `Read Existing Jobs Before Upsert` → `Preserve First Seen Metadata`. It reads rows to preserve original timestamps for repeated listings and stamps only genuinely new links. The main Sheet still uses `Link` for upserts. It does not automatically overwrite older ratings.
+The first-seen guard runs **before** `Send to Google Sheets`: `Read Existing Jobs Before Upsert` → `Preserve First Seen Metadata`. It reads rows to preserve original dates for repeated listings and stamps only genuinely new links. The main Sheet still uses `Link` for upserts. It does not automatically overwrite older ratings.
 
 ## Import and configure
 
