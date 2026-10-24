@@ -1,27 +1,23 @@
-# Combined n8n workflow export
+# Combined n8n workflows and scheduled digests
 
-`indeed-job-discovery-and-application-generator.sanitized.json` is a privacy-safe example of the **23-node workflow** reflected in the latest export (October 2026).
+These public workflow exports are **sanitized references**; all are disabled or inactive until manually configured.
 
-It contains **two branches**: job discovery/eligibility/100-point rating, and manual-selection résumé/cover-letter drafting with AI review and Google Docs templates.
+| File | Use |
+| --- | --- |
+| `indeed-job-discovery-and-application-generator.sanitized.json` | **27-node** parent workflow: discovery, eligibility, rating, document generation, first-seen tracking, and disabled post-run hook |
+| `post-run-telegram-digest.sanitized.json` | **5-node** child: per-update Telegram summary keyed to the parent's execution ID |
+| `daily-9pm-email-and-telegram-digest.sanitized.json` | **7-node** daily: 9 PM Pacific Gmail HTML table and Telegram summary of jobs first seen today |
 
-## Latest architecture changes
-
-- Added **Filter Non-remote and Military jobs** to analyze location and clearance restrictions rather than trusting the `Remote` flag.
-- Added **Update Google Sheet Ratings1** to write automatic rejection ratings and reasons.
-- Added **Grab additional pending rating Rows** so the full scorer reads only jobs still missing a rating.
-- Added **Load Rating Career Profile** for 50/25/25 career-fit / salary / benefits evaluation.
-- The résumé document-check trigger changed to **every 15 minutes**.
-- The source workflow uses separate AI models for filtering, rating, drafting and final review.
+See **[Scheduled digest setup](../docs/job-digests.md)** for required Sheet columns, credentials, the child-workflow connection, timezone, and testing.
 
 ## Safety and customization
 
-- **Both schedule triggers are disabled.**
-- Credential references, private Google and Apify identifiers, execution data and pinned results are removed.
-- The real career profiles and identifying details are replaced with fictional examples.
-- The AI prompts use the privacy-safe public versions from [../prompts/](../prompts/README.md), not raw personal prompt data.
-- You must provide your own authorized credentials, actors, spreadsheets, folder and template IDs, and verified career information.
-- The code and Docs templates still assume certain role names and experience fields. Adapt them to your own career profile before use.
-
-This is a demonstrative project export, **not** an autonomous job application service. Final application submission requires human action.
+- No private candidate details, credential references, resource IDs, or pinned results are published.
+- Parent scheduled triggers and the parent call to its child digest remain **disabled**; the nightly trigger is disabled, and all workflow active flags are false.
+- Provide your own Google Sheet, dashboard web-app deployment URL, Telegram channel Chat ID, and Gmail account.
+- Both digest workflows read fresh Sheets values for job descriptions, type, score, and dashboard links.
+- Job discovery timestamps are separate from Indeed's posted date; existing rows without first-seen metadata are not silently counted as new jobs.
+- The dashboard deep-link feature must be deployed to your private Google Apps Script web app.
+- The résumé document Code nodes remain role-specific examples, not a general résumé generation product.
 
 See [Setup](../docs/setup.md), [Architecture](../docs/architecture.md), and [Security](../docs/security.md).

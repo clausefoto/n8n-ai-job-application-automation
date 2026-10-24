@@ -60,7 +60,7 @@ The dashboard is a Google Apps Script web app connected to a private Google Shee
 
 ## Workflow architecture
 
-The [updated 23-node architecture](docs/architecture.md) documents the eligibility screen, re-query of pending jobs, separate rating career-profile loader and 15-minute application-check schedule. The [sanitized workflow JSON](workflows/indeed-job-discovery-and-application-generator.sanitized.json) reflects that node graph.
+The [updated architecture](docs/architecture.md) documents the eligibility screen, re-query of pending jobs, separate rating career-profile loader and 15-minute application-check schedule. The [sanitized workflow JSON](workflows/indeed-job-discovery-and-application-generator.sanitized.json) reflects the 27-node example, including the optional first-seen and digest-hook nodes.
 
 ## Project contents
 
@@ -75,6 +75,7 @@ The [updated 23-node architecture](docs/architecture.md) documents the eligibili
 │   ├── architecture.md
 │   ├── dashboard.md
 │   ├── setup.md
+│   ├── job-digests.md
 │   ├── security.md
 │   ├── troubleshooting.md
 │   └── images/
@@ -89,7 +90,9 @@ The [updated 23-node architecture](docs/architecture.md) documents the eligibili
 │   └── README.md
 ├── workflows/
 │   ├── indeed-job-discovery-and-application-generator.sanitized.json
-│   └── README.md
+│   ├── README.md
+│   ├── post-run-telegram-digest.sanitized.json
+│   └── daily-9pm-email-and-telegram-digest.sanitized.json
 ├── scripts/audit_n8n_export.py
 ├── examples/sample-job.json
 └── .gitignore
@@ -122,6 +125,17 @@ Start with [docs/setup.md](docs/setup.md), then consult the [security checklist]
 - **Support optional projects:** Use two résumé templates to avoid blank sections and leftover horizontal rules.
 - **Control AI behavior:** Career information must come from verified profile data, not from unsupported job-posting claims.
 - **Avoid autonomous applications:** Final application submission is outside this automation.
+
+## Scheduled digest notifications
+
+An optional set of digest workflows now reports job-discovery results:
+
+- **After the 8 AM, noon, 4 PM, and 8 PM runs:** a Telegram summary of jobs first found in each completed run.
+- **At 9 PM Pacific:** a Gmail HTML table and a Telegram summary covering jobs first discovered that calendar day.
+
+The 9 PM email contains a greeting and rows with **title, short description, job type, rating, and direct dashboard link**. The workflow uses new `First Seen At` and `First Seen Run ID` Google Sheets columns rather than the provider's publication date, preventing duplicate jobs from being treated as new repeatedly. The per-run child digest and nightly workflow are **off by default** in the public examples.
+
+See [scheduled digest setup](docs/job-digests.md) and the two [digest workflow JSON files](workflows/README.md).
 
 ## Current limitations and next steps
 

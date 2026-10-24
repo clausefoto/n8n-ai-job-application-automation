@@ -1,6 +1,6 @@
 # Setup and reproduction
 
-The [sanitized combined workflow](../workflows/indeed-job-discovery-and-application-generator.sanitized.json) represents the newer **23-node, two-branch n8n workflow**. It is a **reference export**, not a plug-and-play deployment. **Both schedule triggers are disabled**.
+The [sanitized combined workflow](../workflows/indeed-job-discovery-and-application-generator.sanitized.json) represents the newer **27-node parent n8n workflow with two primary branches and an optional digest branch**. It is a **reference export**, not a plug-and-play deployment. **Both schedule triggers are disabled**.
 
 ## Prerequisites
 
