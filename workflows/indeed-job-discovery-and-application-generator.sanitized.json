@@ -1,5 +1,5 @@
 {
-  "name": "Indeed - Systems Administrator | Daily (public sanitized example)",
+  "name": "Indeed - Systems Administrator | Daily (public sanitized example + digests)",
   "nodes": [
     {
       "parameters": {
@@ -262,20 +262,22 @@
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "Platform": "Indeed",
-            "Link": "={{ $('Get Jobs Dataset').item.json.jobUrl }}",
-            "Date": "={{ $('Get Jobs Dataset').item.json.datePublished }}",
-            "Expired": "={{ $('Get Jobs Dataset').item.json.expired }}",
-            "Remote": "={{ $('Get Jobs Dataset').item.json.isRemote }}",
-            "Salary": "={{ $json.salary.salaryText }}",
-            "City": "={{ $('Get Jobs Dataset').item.json.location.city }}",
-            "Company Name": "={{ $('Get Jobs Dataset').item.json.companyName }}",
-            "Job Description": "={{ $('Get Jobs Dataset').item.json.descriptionText }}",
-            "Title": "={{ $('Get Jobs Dataset').item.json.title }}",
-            "Age": "={{ $('Get Jobs Dataset').item.json.age }}",
-            "Company Logo": "={{ $('Get Jobs Dataset').item.json.companyLogoUrl }}",
-            "Benefits": "={{ $json.benefits }}",
-            "Type": "={{ $json.jobType }}"
+            "Platform": "={{ 'Indeed' }}",
+            "Link": "={{ $json.jobUrl }}",
+            "Date": "={{ $json.datePublished }}",
+            "Expired": "={{ $json.expired }}",
+            "Remote": "={{ $json.isRemote }}",
+            "Salary": "={{ $json.salary?.salaryText ?? '' }}",
+            "City": "={{ $json.location?.city ?? '' }}",
+            "Company Name": "={{ $json.companyName }}",
+            "Job Description": "={{ $json.descriptionText }}",
+            "Title": "={{ $json.title }}",
+            "Age": "={{ $json.age }}",
+            "Company Logo": "={{ $json.companyLogoUrl ?? '' }}",
+            "Benefits": "={{ $json.benefits ?? '' }}",
+            "Type": "={{ $json.jobType ?? '' }}",
+            "First Seen At": "={{ $json['First Seen At'] }}",
+            "First Seen Run ID": "={{ $json['First Seen Run ID'] }}"
           },
           "matchingColumns": [
             "Link"
@@ -490,6 +492,26 @@
               "type": "string",
               "canBeUsedToMatch": true,
               "removed": false
+            },
+            {
+              "id": "First Seen At",
+              "displayName": "First Seen At",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "First Seen Run ID",
+              "displayName": "First Seen Run ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
             }
           ],
           "attemptToConvertTypes": false,
@@ -500,8 +522,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        624,
-        0
+        1110,
+        -120
       ],
       "id": "00000000-0000-4000-8000-000000000012",
       "name": "Send to Google Sheets"
@@ -1461,6 +1483,85 @@
       "id": "00000000-0000-4000-8000-000000000023",
       "name": "Resume Updates every 15 min",
       "disabled": true
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "YOUR_GOOGLE_SPREADSHEET_ID"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "id",
+          "value": "0"
+        },
+        "filtersUI": {
+          "values": []
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        658,
+        -220
+      ],
+      "id": "cbb78a0f-33cf-48fd-8e99-000000000001",
+      "name": "Read Existing Jobs Before Upsert",
+      "executeOnce": true,
+      "alwaysOutputData": true
+    },
+    {
+      "id": "cbb78a0f-33cf-48fd-8e99-000000000002",
+      "name": "Preserve First Seen Metadata",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        874,
+        -220
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Run once for all items. Read existing Sheet rows once before the upsert.\n// Preserve the first-discovery metadata on existing rows to avoid repeated \"new job\" alerts.\nconst existingRows = $input.all().map(item => item.json);\nconst incoming = $('Get Jobs Dataset').all().map(item => item.json);\nconst lookup = new Map();\nfor (const row of existingRows) {\n  const link = String(row.Link || '').trim();\n  if (link) lookup.set(link, row);\n}\nconst now = new Date().toISOString();\nconst runId = String($execution.id || 'manual-test');\nconst found = new Set();\nconst result = [];\nfor (const job of incoming) {\n  const link = String(job.jobUrl || '').trim();\n  if (!link || found.has(link)) continue;\n  found.add(link);\n  const prior = lookup.get(link);\n  result.push({json:{\n    ...job,\n    'First Seen At': prior ? String(prior['First Seen At'] || '') : now,\n    'First Seen Run ID': prior ? String(prior['First Seen Run ID'] || '') : runId\n  }});\n}\nreturn result;"
+      }
+    },
+    {
+      "id": "cbb78a0f-33cf-48fd-8e99-000000000003",
+      "name": "Notify Completed Discovery Run",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1330,
+        650
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// This notification branch is BELOW the rating branch on the canvas.\n// With executionOrder v1, the upper scoring branch completes before this branch.\nreturn [{json:{runId:String($execution.id || 'manual-test'),runCompletedAt:new Date().toISOString()}}];"
+      }
+    },
+    {
+      "id": "cbb78a0f-33cf-48fd-8e99-000000000004",
+      "name": "Run Telegram Digest Subworkflow",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1540,
+        650
+      ],
+      "disabled": true,
+      "parameters": {
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "value": "SELECT_IMPORTED_RUN_DIGEST_WORKFLOW",
+          "mode": "id"
+        },
+        "mode": "once",
+        "options": {
+          "waitForSubWorkflow": false
+        }
+      }
     }
   ],
   "connections": {
@@ -1592,6 +1693,11 @@
             "node": "Grab pending rating Rows",
             "type": "main",
             "index": 0
+          },
+          {
+            "node": "Notify Completed Discovery Run",
+            "type": "main",
+            "index": 0
           }
         ]
       ]
@@ -1616,7 +1722,7 @@
       "main": [
         [
           {
-            "node": "Send to Google Sheets",
+            "node": "Read Existing Jobs Before Upsert",
             "type": "main",
             "index": 0
           }
@@ -1699,11 +1805,50 @@
           }
         ]
       ]
+    },
+    "Read Existing Jobs Before Upsert": {
+      "main": [
+        [
+          {
+            "node": "Preserve First Seen Metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preserve First Seen Metadata": {
+      "main": [
+        [
+          {
+            "node": "Send to Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Completed Discovery Run": {
+      "main": [
+        [
+          {
+            "node": "Run Telegram Digest Subworkflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run Telegram Digest Subworkflow": {
+      "main": [
+        []
+      ]
     }
   },
   "active": false,
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "timezone": "America/Los_Angeles"
   },
   "tags": []
 }
