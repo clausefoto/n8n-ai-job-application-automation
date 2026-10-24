@@ -32,3 +32,23 @@ The **Overview** page uses a small additive block appended to the original `Inde
 **New Jobs** counts posting dates equal to the browser's current calendar date or the previous date. It uses the Google Sheet `Date` column—not `Age` or row insertion time. `getJobs()` reads this with `getDisplayValues()` to preserve the Sheet-visible calendar date without script-timezone shifts. **Interested Jobs** counts jobs explicitly marked Interested, independent of the cover-letter selection flag.
 
 To deploy, synchronize **both** `Code.gs` and `Index.html` into your Apps Script project, then use **Test deployments**. Updating the repository alone does not deploy changes to the live Google Apps Script web app.
+
+## Link directly to a job from an alert
+
+The dashboard accepts a `job` query parameter in its deployed Google Apps Script web-app URL. Its value must equal the Google Sheet's `Link` field for the job. Once the Sheet has loaded, the dashboard switches to **All jobs** and opens that record. It clears list filters so the selected job is visible.
+
+**Example URL format (placeholders, not a live deployment):**
+
+```text
+https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec?job=URL_ENCODED_JOB_LINK
+```
+
+In the **n8n Gmail message** and **Telegram message** fields, add this expression (replace the placeholder deployment URL with your own private Apps Script `/exec` URL):
+
+```javascript
+{{ 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec?job=' + encodeURIComponent($('Grab additional pending rating Rows').item.json.Link) }}
+```
+
+This uses the *same* Sheet job URL used as the stable key in the existing rating flow; it does **not** use the Sheet row number. Include the result in your Gmail/Telegram message as a **Dashboard Job** link. Optionally add the original external job posting URL as a separate link.
+
+**Important:** The public repository does not include the actual dashboard deployment URL. Updating `Index.html` in GitHub does **not** deploy the Apps Script web app. Copy the changed `Index.html` into your Apps Script project, save, and deploy a **new version** of the web app; then test a direct job link while signed in to the account with access. Keep your dashboard restricted to your account. Missing or unmatched job links show a message and leave the dashboard usable.
